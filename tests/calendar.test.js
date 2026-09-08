@@ -5,7 +5,7 @@ import test from "node:test";
 import { buildOutputs } from "../js/calendar.js";
 import { buildOccurrences, findDiagnostics } from "../js/diagnostics.js";
 import { defaultPreferences, getEffectiveEvents } from "../js/preferences.js";
-import { validatePayload } from "../js/timetable.js";
+import { parseWeekRanges, validatePayload } from "../js/timetable.js";
 
 const source = JSON.parse(await readFile(new URL("../timetable.sample.json", import.meta.url), "utf8"));
 
@@ -15,6 +15,20 @@ function setup() {
   const entries = getEffectiveEvents(payload, preferences);
   return { payload, preferences, entries };
 }
+
+test("teaching weeks support discrete weeks and mixed ranges", () => {
+  assert.deepEqual(parseWeekRanges("S1 01, S1 03, S1 05, S1 07"), [
+    { start: 1, end: 1 },
+    { start: 3, end: 3 },
+    { start: 5, end: 5 },
+    { start: 7, end: 7 },
+  ]);
+  assert.deepEqual(parseWeekRanges("S1 01-S1 08, S1 10, S1 12-S1 13"), [
+    { start: 1, end: 8 },
+    { start: 10, end: 10 },
+    { start: 12, end: 13 },
+  ]);
+});
 
 test("default export preserves all source sessions", () => {
   const { payload, preferences, entries } = setup();

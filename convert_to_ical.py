@@ -21,7 +21,7 @@ DAY_OFFSETS = {
     "SAT": 5,
     "SUN": 6,
 }
-WEEK_RANGE_RE = re.compile(r"S\d+\s+(\d{1,2})\s*-\s*S\d+\s+(\d{1,2})")
+WEEK_TOKEN_RE = re.compile(r"^S\d+\s+(\d{1,2})(?:\s*-\s*S\d+\s+(\d{1,2}))?$", re.IGNORECASE)
 
 
 def escape_ical(value: Any) -> str:
@@ -62,9 +62,11 @@ def add_line(lines: list[str], name: str, value: Any) -> None:
 
 
 def parse_week_ranges(value: str) -> list[tuple[int, int]]:
-    ranges = [(int(start), int(end)) for start, end in WEEK_RANGE_RE.findall(value)]
-    if not ranges:
+    tokens = [token.strip() for token in str(value).split(",") if token.strip()]
+    matches = [WEEK_TOKEN_RE.fullmatch(token) for token in tokens]
+    if not tokens or any(match is None for match in matches):
         raise ValueError(f"Cannot parse teachingWeeks: {value!r}")
+    ranges = [(int(match.group(1)), int(match.group(2) or match.group(1))) for match in matches]
     if any(start < 1 or end < start for start, end in ranges):
         raise ValueError(f"Invalid teachingWeeks range: {value!r}")
     return ranges

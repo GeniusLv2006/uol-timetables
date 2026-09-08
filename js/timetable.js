@@ -1,11 +1,15 @@
 import { DAY_OFFSETS, KNOWN_WEEK_ONE_DATES } from "./constants.js";
 
 export function parseWeekRanges(value) {
-  const matches = [...String(value).matchAll(/S\d+\s+(\d{1,2})\s*-\s*S\d+\s+(\d{1,2})/g)];
-  if (!matches.length) throw new Error(`Cannot parse teachingWeeks: “${value}”.`);
-  return matches.map((match) => {
+  const tokens = String(value).split(",").map((token) => token.trim()).filter(Boolean);
+  const tokenPattern = /^S\d+\s+(\d{1,2})(?:\s*-\s*S\d+\s+(\d{1,2}))?$/i;
+  if (!tokens.length || tokens.some((token) => !tokenPattern.test(token))) {
+    throw new Error(`Cannot parse teachingWeeks: “${value}”.`);
+  }
+  return tokens.map((token) => {
+    const match = token.match(tokenPattern);
     const start = Number(match[1]);
-    const end = Number(match[2]);
+    const end = Number(match[2] || match[1]);
     if (start < 1 || end < start) throw new Error(`Invalid week range: “${value}”.`);
     return { start, end };
   });

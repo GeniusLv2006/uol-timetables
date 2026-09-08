@@ -115,7 +115,7 @@ Each item in `events` contains:
 - `day`, `start`, `end`, `durationMinutes`
 - `moduleCode`, `moduleTitle`, `moduleUrl`
 - `deliveryType`, `activity`, `academic`, `location`
-- `teachingWeeks` (for example `S1 01-S1 08, S1 10-S1 12`)
+- `teachingWeeks` (for example `S1 01-S1 08, S1 10-S1 12` or `S1 01, S1 03, S1 05`)
 
 The source page is server-rendered rather than backed by an exposed JSON payload.
 Times are encoded spatially: the grid begins at 08:00, each logical column is 30
