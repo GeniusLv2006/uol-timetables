@@ -30,6 +30,12 @@ test("teaching weeks support discrete weeks and mixed ranges", () => {
   ]);
 });
 
+test("payload validation rejects omitted weekdays in imported data", () => {
+  const payload = structuredClone(source);
+  payload.events[0].day = "";
+  assert.throws(() => validatePayload(payload), /Event 1 has an invalid day/);
+});
+
 test("default export preserves all source sessions", () => {
   const { payload, preferences, entries } = setup();
   assert.equal(preferences.titleFormat, "code");

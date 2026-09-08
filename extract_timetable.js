@@ -7,11 +7,14 @@
   const hhmm = (minutes) =>
     `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
 
+  let previousDay = "";
   return Array.from(document.querySelectorAll("table tr"))
     .slice(1)
     .flatMap((row) => {
       const cells = Array.from(row.cells);
-      const day = (cells[0]?.innerText || "").trim();
+      const detectedDay = (cells[0]?.innerText || "").trim().toUpperCase();
+      if (detectedDay) previousDay = detectedDay;
+      const day = previousDay;
       let logicalColumn = 1;
       const events = [];
 

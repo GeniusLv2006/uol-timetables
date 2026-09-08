@@ -6,9 +6,12 @@ export async function extractTimetable() {
     const pad = (value) => String(value).padStart(2, "0");
     const hhmm = (minutes) => `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
     const semester = Number(new URL(location.href).searchParams.get("semester") || 1);
+    let previousDay = "";
     const events = Array.from(table.querySelectorAll("tr")).slice(1).flatMap((row) => {
       const cells = Array.from(row.cells);
-      const day = (cells[0]?.innerText || "").trim().toUpperCase();
+      const detectedDay = (cells[0]?.innerText || "").trim().toUpperCase();
+      if (detectedDay) previousDay = detectedDay;
+      const day = previousDay;
       let logicalColumn = 1;
       const rowEvents = [];
       for (const cell of cells.slice(1)) {
