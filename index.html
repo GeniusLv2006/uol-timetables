@@ -44,7 +44,7 @@
           <ol>
             <li><span>01</span><strong>Save</strong><small>The extractor</small></li>
             <li><span>02</span><strong>Visit</strong><small>My Timetable</small></li>
-            <li><span>03</span><strong>Drop</strong><small>The JSON here</small></li>
+            <li><span>03</span><strong>Paste</strong><small>From clipboard</small></li>
             <li><span>04</span><strong>Export</strong><small>Your .ics file</small></li>
           </ol>
           <div class="board-status"><i></i> Runs entirely on-device</div>
@@ -109,7 +109,7 @@
         <div class="section-heading converter-heading">
           <div>
             <p class="eyebrow">Build The Calendar</p>
-            <h2>Drop in JSON. Take out iCalendar.</h2>
+            <h2>Paste in JSON. Take out iCalendar.</h2>
           </div>
           <div class="live-status" id="live-status" role="status" aria-live="polite">
             Waiting for timetable data
@@ -131,7 +131,9 @@
 
             <div class="ingest-actions">
               <button class="paste-clipboard" id="paste-clipboard" type="button">
-                <span class="paste-icon" aria-hidden="true">⌘V</span>
+                <span class="paste-icon" aria-hidden="true">
+                  <kbd>⌘</kbd><kbd>V</kbd>
+                </span>
                 <span>
                   <strong>Paste From Clipboard</strong>
                   <small>Fastest route</small>
