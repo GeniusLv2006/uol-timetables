@@ -6,6 +6,7 @@ __pycache__/
 *.pyc
 dist/
 node_modules/
+AGENTS.md
 
 # Personal timetable exports must never be committed or deployed.
 timetable.semester*.json
