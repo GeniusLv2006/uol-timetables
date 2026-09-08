@@ -52,6 +52,15 @@ test("default export preserves all source sessions", () => {
   }
 });
 
+test("default export keeps module URLs in the standard URL property only", () => {
+  const { payload, preferences, entries } = setup();
+  payload.events[0].moduleUrl = "https://tulip.liv.ac.uk/mods/student/COMP211_202627.htm";
+  const output = buildOutputs(payload, preferences, getEffectiveEvents(payload, preferences))[0].ical;
+  assert.equal((output.match(/https:\/\/tulip\.liv\.ac\.uk\/mods\/student\/COMP211_202627\.htm/g) || []).length, 1);
+  assert.match(output, /URL:https:\/\/tulip\.liv\.ac\.uk\/mods\/student\/COMP211_202627\.htm\r?\n/);
+  assert.doesNotMatch(output, /Module: https:\/\/tulip\.liv\.ac\.uk/);
+});
+
 test("title, reminder, recurrence, filters, and split settings affect output", () => {
   const { payload, preferences } = setup();
   preferences.titleFormat = "code";

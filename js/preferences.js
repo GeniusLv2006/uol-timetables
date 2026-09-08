@@ -12,7 +12,9 @@ export function defaultPreferences(payload) {
     customTitle: "{moduleCode} · {moduleTitle}",
     moduleAliases: Object.fromEntries(modules.map((code) => [code, ""])),
     descriptionOrder: ["activity", "deliveryType", "teachingWeeks", "academic", "moduleUrl", "source"],
-    descriptionEnabled: { activity: true, deliveryType: true, teachingWeeks: true, academic: true, moduleUrl: true, source: false },
+    // Module URLs are exported as the standard VEVENT URL property below.
+    // Keep the field available for explicit opt-in without duplicating it by default.
+    descriptionEnabled: { activity: true, deliveryType: true, teachingWeeks: true, academic: true, moduleUrl: false, source: false },
     locationFormat: "full",
     locationAliases: Object.fromEntries(locations.map((location) => [location, ""])),
     reminderMinutes: "0",

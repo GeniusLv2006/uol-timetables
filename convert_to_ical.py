@@ -113,9 +113,6 @@ def event_components(
         ]
         if event.get("academic"):
             description_parts.append(f"Academic: {event['academic']}")
-        if event.get("moduleUrl"):
-            description_parts.append(f"Module: {event['moduleUrl']}")
-
         lines = ["BEGIN:VEVENT"]
         add_line(lines, "UID", f"{uid_hash}@timetables.liverpool.ac.uk")
         add_line(lines, "DTSTAMP", dtstamp)
