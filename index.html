@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="UoL Timetable Converter is a private, browser-only timetable to iCalendar tool."
+    />
+    <title>UoL Timetable Converter</title>
+    <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles/studio.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+    <header class="masthead">
+      <a class="brand" href="#top" aria-label="UoL Timetable Converter home">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/icon.svg" alt="" /></span>
+        <span>UoL Timetable Converter</span>
+      </a>
+      <div class="masthead-meta">
+        <span>University of Liverpool</span>
+        <span>Local utility · No uploads</span>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Semester Data, Made Portable</p>
+          <h1>Turn the timetable grid into a calendar you own.</h1>
+          <p class="hero-intro">
+            Extract your timetable as structured JSON, inspect every field, then
+            export a timezone-aware iCalendar file. Everything stays in this browser.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#extract">Get The Extractor</a>
+            <a class="text-link" href="#convert">Skip To Converter <span>↓</span></a>
+          </div>
+        </div>
+        <div class="hero-board" aria-label="Process Overview">
+          <div class="board-label">Route / 01—04</div>
+          <ol>
+            <li><span>01</span><strong>Save</strong><small>The extractor</small></li>
+            <li><span>02</span><strong>Visit</strong><small>My Timetable</small></li>
+            <li><span>03</span><strong>Drop</strong><small>The JSON here</small></li>
+            <li><span>04</span><strong>Export</strong><small>Your .ics file</small></li>
+          </ol>
+          <div class="board-status"><i></i> Runs entirely on-device</div>
+        </div>
+      </section>
+
+      <section class="extract-section" id="extract">
+        <div class="section-index">01—02</div>
+        <div class="section-heading">
+          <p class="eyebrow">Capture The Source</p>
+          <h2>Install once. Extract when the timetable changes.</h2>
+        </div>
+        <div class="extract-grid">
+          <article class="bookmark-ticket">
+            <div class="ticket-topline">
+              <span>Clipboard Bookmarklet</span>
+              <span class="ticket-code">UOL—JSON</span>
+            </div>
+            <a
+              id="bookmarklet"
+              class="bookmarklet"
+              href="#"
+              draggable="true"
+              title="Drag this link to your bookmarks bar"
+            >
+              <span class="bookmarklet-icon" aria-hidden="true">↗</span>
+              <span>
+                <strong>Copy UoL Timetable</strong>
+                <small>Drag me to the bookmarks bar</small>
+              </span>
+            </a>
+            <button class="copy-link" id="copy-bookmarklet" type="button">
+              Copy Bookmarklet Code
+            </button>
+          </article>
+
+          <div class="instructions">
+            <ol>
+              <li>
+                <span>01</span>
+                <p><strong>Drag the gold button</strong> to your browser’s bookmarks bar.</p>
+              </li>
+              <li>
+                <span>02</span>
+                <p>Open your University of Liverpool <strong>semester view</strong>.</p>
+              </li>
+              <li>
+                <span>03</span>
+                <p>Click the bookmark. Structured <strong>JSON is copied</strong> instantly.</p>
+              </li>
+            </ol>
+            <p class="privacy-note">
+              If clipboard access is blocked, the extractor downloads the JSON instead.
+              Nothing is uploaded, and your browser session is never read or transmitted.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="converter-section" id="convert">
+        <div class="section-index">03—04</div>
+        <div class="section-heading converter-heading">
+          <div>
+            <p class="eyebrow">Build The Calendar</p>
+            <h2>Drop in JSON. Take out iCalendar.</h2>
+          </div>
+          <div class="live-status" id="live-status" role="status" aria-live="polite">
+            Waiting for timetable data
+          </div>
+        </div>
+
+        <div class="workbench">
+          <div class="input-panel">
+            <div class="panel-header">
+              <div>
+                <span class="panel-number">03</span>
+                <h3>Timetable JSON</h3>
+              </div>
+              <div class="panel-actions">
+                <button id="load-sample" class="quiet-button" type="button">Load Sample</button>
+                <button id="clear-json" class="quiet-button" type="button">Clear</button>
+              </div>
+            </div>
+
+            <div class="ingest-actions">
+              <button class="paste-clipboard" id="paste-clipboard" type="button">
+                <span class="paste-icon" aria-hidden="true">⌘V</span>
+                <span>
+                  <strong>Paste From Clipboard</strong>
+                  <small>Fastest route</small>
+                </span>
+              </button>
+              <label class="drop-zone" id="drop-zone" for="file-input">
+                <input id="file-input" type="file" accept=".json,application/json" />
+                <span class="drop-icon">↓</span>
+                <span><strong>Drop JSON</strong> or choose a file</span>
+              </label>
+            </div>
+
+            <label class="textarea-label" for="json-input">
+              <span>Paste Or Edit JSON</span>
+              <span id="character-count">0 Characters</span>
+            </label>
+            <textarea
+              id="json-input"
+              spellcheck="false"
+              placeholder='{ "weekOneMonday": "2026-09-28", "events": […] }'
+            ></textarea>
+            <div class="message" id="validation-message" hidden></div>
+          </div>
+
+          <aside class="output-panel">
+            <div class="panel-header">
+              <div>
+                <span class="panel-number">04</span>
+                <h3>Calendar Output</h3>
+              </div>
+              <span class="format-stamp">RFC 5545</span>
+            </div>
+
+            <div class="summary-empty" id="summary-empty">
+              <span>∅</span>
+              <p>Add valid timetable JSON to see the calendar summary.</p>
+            </div>
+
+            <div class="summary" id="summary" hidden>
+              <div class="calendar-name-row">
+                <div>
+                  <span>Calendar</span>
+                  <strong id="summary-name">—</strong>
+                </div>
+                <div class="ready-seal">Ready</div>
+              </div>
+
+              <dl class="metrics">
+                <div><dt id="metric-modules">0</dt><dd>Modules</dd></div>
+                <div><dt id="metric-patterns">0</dt><dd>Patterns</dd></div>
+                <div><dt id="metric-sessions">0</dt><dd>Sessions</dd></div>
+              </dl>
+
+              <div class="metadata-list">
+                <div><span>Academic Year</span><strong id="summary-year">—</strong></div>
+                <div><span>Week One</span><strong id="summary-week-one">—</strong></div>
+                <div><span>Timezone</span><strong id="summary-timezone">—</strong></div>
+                <div><span>First Event</span><strong id="summary-first-event">—</strong></div>
+                <div><span>Last Event</span><strong id="summary-last-event">—</strong></div>
+              </div>
+
+              <div class="module-key" id="module-key"></div>
+
+              <div class="diagnostics" id="diagnostics">
+                <div class="diagnostics-heading">
+                  <span>Schedule Check</span>
+                  <strong id="diagnostics-count">No Conflicts</strong>
+                </div>
+                <ul id="diagnostics-list" hidden></ul>
+              </div>
+
+              <div class="output-files" id="output-files"></div>
+
+              <button id="export-ical" class="export-button" type="button">
+                <span>Export Calendar</span>
+                <small id="export-caption">Download timetable.ics</small>
+                <b aria-hidden="true">↘</b>
+              </button>
+              <button id="copy-ical" class="secondary-action" type="button">
+                Copy iCalendar Text
+              </button>
+              <a class="more-settings-cue" href="#customizer">
+                <span>
+                  <strong>More Settings Below</strong>
+                  <small>Personalise titles, details, weeks, and calendar splitting.</small>
+                </span>
+                <b aria-hidden="true">↓</b>
+              </a>
+            </div>
+          </aside>
+        </div>
+
+        <section class="customizer" id="customizer" hidden>
+          <div class="customizer-head">
+            <div>
+              <p class="eyebrow">Personalisation Studio</p>
+              <h3>Shape what reaches your calendar.</h3>
+            </div>
+            <div class="profile-dock">
+              <label for="profile-select">Saved Profile</label>
+              <select id="profile-select">
+                <option value="">Current settings</option>
+              </select>
+              <input id="profile-name" type="text" maxlength="40" placeholder="Profile name" />
+              <button id="save-profile" type="button">Save Profile</button>
+              <button id="delete-profile" type="button">Delete</button>
+              <small>Preferences stay in this browser</small>
+            </div>
+          </div>
+
+          <div class="customizer-body">
+            <nav class="config-nav" aria-label="Calendar Configuration">
+              <button class="config-tab active" data-panel="naming-panel" type="button">
+                <span>01</span><strong>Naming</strong><small>Titles and appearance</small>
+              </button>
+              <button class="config-tab" data-panel="details-panel" type="button">
+                <span>02</span><strong>Details</strong><small>Descriptions and places</small>
+              </button>
+              <button class="config-tab" data-panel="schedule-panel" type="button">
+                <span>03</span><strong>Schedule</strong><small>Weeks and recurrence</small>
+              </button>
+              <button class="config-tab" data-panel="delivery-panel" type="button">
+                <span>04</span><strong>Delivery</strong><small>Filters and splitting</small>
+              </button>
+            </nav>
+
+            <div class="config-stage">
+              <section class="config-panel active" id="naming-panel">
+                <div class="config-panel-heading">
+                  <span>01 / Naming</span>
+                  <h4>Choose how each event is named.</h4>
+                </div>
+
+                <div class="setting-block">
+                  <label for="title-format">Event Title Format</label>
+                  <select id="title-format">
+                    <option value="code" selected>Course code</option>
+                    <option value="code-name">Course code and name</option>
+                    <option value="code-type">Course code and activity type</option>
+                    <option value="name">Course name</option>
+                    <option value="custom">Custom template</option>
+                  </select>
+                  <div id="custom-title-group" hidden>
+                    <label for="custom-title">Custom Title Template</label>
+                    <input id="custom-title" type="text" value="{moduleCode} · {moduleTitle}" />
+                    <p class="field-note">Tokens: {moduleCode}, {moduleTitle}, {moduleAlias}, {deliveryType}, {activity}, {academic}, {location}</p>
+                  </div>
+                  <div class="live-example"><span>Example</span><strong id="title-example">COMP211</strong></div>
+                </div>
+
+                <div class="setting-block">
+                  <div class="setting-heading">
+                    <div><label>Module Aliases</label><p>Use shorter names without changing module codes.</p></div>
+                  </div>
+                  <div class="mapping-list" id="module-aliases"></div>
+                </div>
+
+                <div class="setting-block">
+                  <label>Calendar Appearance</label>
+                  <div class="form-grid two-columns">
+                    <div><label for="calendar-name">Calendar Name</label><input id="calendar-name" type="text" /></div>
+                    <div><label for="file-name">Export File Name</label><input id="file-name" type="text" /></div>
+                    <div class="span-two"><label for="calendar-description">Calendar Description</label><textarea class="compact-textarea" id="calendar-description"></textarea></div>
+                    <div><label for="calendar-color">Suggested Calendar Colour</label><input id="calendar-color" type="color" value="#243352" /></div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="config-panel" id="details-panel" hidden>
+                <div class="config-panel-heading">
+                  <span>02 / Details</span>
+                  <h4>Choose the details each class carries.</h4>
+                </div>
+
+                <div class="setting-block">
+                  <div class="setting-heading">
+                    <div><label>Description Fields</label><p>Enable fields and use the arrows to change their order.</p></div>
+                  </div>
+                  <div class="field-order" id="description-fields"></div>
+                </div>
+
+                <div class="setting-block split-settings">
+                  <div>
+                    <label for="location-format">Location Format</label>
+                    <select id="location-format">
+                      <option value="full">Full location</option>
+                      <option value="building-room">Building and room</option>
+                      <option value="room">Room only</option>
+                      <option value="hidden">Hide location</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="reminder-minutes">Default Reminder</label>
+                    <select id="reminder-minutes">
+                      <option value="0">No reminder</option>
+                      <option value="5">5 minutes before</option>
+                      <option value="10">10 minutes before</option>
+                      <option value="15">15 minutes before</option>
+                      <option value="30">30 minutes before</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                    <div id="custom-reminder-group" hidden>
+                      <label for="custom-reminder">Minutes Before</label>
+                      <input id="custom-reminder" type="number" min="1" max="10080" value="20" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="setting-block">
+                  <div class="setting-heading">
+                    <div><label>Location Aliases</label><p>Shorten long campus names before exporting.</p></div>
+                  </div>
+                  <div class="mapping-list location-mappings" id="location-aliases"></div>
+                </div>
+              </section>
+
+              <section class="config-panel" id="schedule-panel" hidden>
+                <div class="config-panel-heading">
+                  <span>03 / Schedule</span>
+                  <h4>Set the academic frame and recurrence strategy.</h4>
+                </div>
+
+                <div class="setting-block">
+                  <label>Academic Frame</label>
+                  <div class="form-grid two-columns">
+                    <div><label for="week-one">Week One Monday</label><input id="week-one" type="date" /></div>
+                    <div><label for="timezone">Timezone</label><input id="timezone" type="text" value="Europe/London" /></div>
+                    <div><label for="semester-start">Semester Start</label><input id="semester-start" type="date" /></div>
+                    <div><label for="semester-end">Semester End</label><input id="semester-end" type="date" /></div>
+                  </div>
+                </div>
+
+                <div class="setting-block">
+                  <label>Teaching Week Controls</label>
+                  <div class="form-grid three-columns">
+                    <div><label for="include-weeks">Include Weeks</label><input id="include-weeks" type="text" placeholder="1-12" /></div>
+                    <div><label for="exclude-weeks">Exclude Weeks</label><input id="exclude-weeks" type="text" placeholder="9, 13" /></div>
+                    <div><label for="reading-week">Reading Week</label><input id="reading-week" type="number" min="1" max="53" placeholder="None" /></div>
+                  </div>
+                  <p class="field-note">Use commas and ranges, for example 1-8, 10-12. Leave Include Weeks empty to follow the source timetable.</p>
+                </div>
+
+                <div class="setting-block">
+                  <label>Recurrence Mode</label>
+                  <div class="choice-cards">
+                    <label><input type="radio" name="recurrence-mode" value="recurring" checked /><span><strong>Recurring events</strong><small>Compact files with weekly rules</small></span></label>
+                    <label><input type="radio" name="recurrence-mode" value="individual" /><span><strong>Individual events</strong><small>Every session can be edited separately</small></span></label>
+                  </div>
+                </div>
+              </section>
+
+              <section class="config-panel" id="delivery-panel" hidden>
+                <div class="config-panel-heading">
+                  <span>04 / Delivery</span>
+                  <h4>Choose what is included and how files are divided.</h4>
+                </div>
+
+                <div class="setting-block">
+                  <label>Calendar Splitting</label>
+                  <div class="choice-cards three-up">
+                    <label><input type="radio" name="split-mode" value="combined" checked /><span><strong>Combined</strong><small>One complete calendar</small></span></label>
+                    <label><input type="radio" name="split-mode" value="module" /><span><strong>By module</strong><small>One file per course</small></span></label>
+                    <label><input type="radio" name="split-mode" value="type" /><span><strong>By activity type</strong><small>Lectures and labs apart</small></span></label>
+                  </div>
+                </div>
+
+                <div class="setting-block">
+                  <div class="setting-heading">
+                    <div><label>Activity Type Filters</label><p>Disable an entire category of teaching.</p></div>
+                    <button class="inline-action" id="select-all-types" type="button">Select All</button>
+                  </div>
+                  <div class="filter-grid" id="delivery-filters"></div>
+                </div>
+
+                <div class="setting-block">
+                  <div class="setting-heading">
+                    <div><label>Individual Activity Filters</label><p>Fine-tune individual classes without editing JSON.</p></div>
+                    <button class="inline-action" id="select-all-activities" type="button">Select All</button>
+                  </div>
+                  <div class="activity-filter-list" id="activity-filters"></div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-main">
+        <div class="footer-identity">
+          <span class="footer-label">Local Timetable Utility</span>
+          <strong>UoL Timetable Converter</strong>
+        </div>
+        <div class="footer-privacy">
+          <span class="footer-label">Privacy</span>
+          <p>Your timetable never leaves this browser.</p>
+          <small>All processing happens locally. No timetable data is sent to a server or saved by this tool.</small>
+        </div>
+        <div class="footer-owner">
+          <span class="footer-label">Copyright</span>
+          <p>© 2026 Tingkai Lyu</p>
+          <small>All rights reserved.</small>
+        </div>
+      </div>
+      <div class="footer-legal">
+        <p><strong>Independent software.</strong> UoL Timetable Converter is not affiliated with, endorsed by, or operated by the University of Liverpool. Always verify exported events against your official timetable.</p>
+        <a href="#top">Back To Top <span aria-hidden="true">↑</span></a>
+      </div>
+    </footer>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

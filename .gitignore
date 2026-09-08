@@ -1,0 +1,12 @@
+.DS_Store
+.dev.vars*
+.env*
+.wrangler/
+__pycache__/
+*.pyc
+dist/
+node_modules/
+
+# Personal timetable exports must never be committed or deployed.
+timetable.semester*.json
+timetable.semester*.ics
