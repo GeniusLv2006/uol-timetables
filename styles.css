@@ -599,6 +599,14 @@ textarea:focus { border-color: var(--gold); }
   line-height: 1.55;
 }
 
+.footer-owner small a {
+  color: inherit;
+  text-decoration-color: var(--gold);
+  text-underline-offset: 4px;
+}
+
+.footer-owner small a:hover { color: var(--paper-bright); }
+
 .footer-legal {
   display: flex;
   align-items: flex-end;
