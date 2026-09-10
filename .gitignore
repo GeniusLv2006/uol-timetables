@@ -2,6 +2,7 @@
 .dev.vars*
 .env*
 .wrangler/
+.audit/
 __pycache__/
 *.pyc
 dist/
