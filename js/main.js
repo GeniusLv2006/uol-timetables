@@ -1,5 +1,6 @@
 import { bookmarkletCode } from "./bookmarklet.js";
 import { buildOutputs } from "./calendar.js";
+import { installContactReveal } from "./contact.js";
 import { buildOccurrences, findDiagnostics } from "./diagnostics.js";
 import { elements } from "./dom.js";
 import {
@@ -22,6 +23,8 @@ const state = {
   inputTimer: null,
   toastTimer: null,
 };
+
+installContactReveal(document.querySelector("#reveal-email"));
 
 function showToast(message) {
   clearTimeout(state.toastTimer);
@@ -63,6 +66,7 @@ function requestCalendarExport(outputs) {
   state.pendingExports = requestedOutputs;
   elements.exportDialog.returnValue = "";
   elements.exportDialog.showModal();
+  document.documentElement.classList.add("has-open-dialog");
 }
 
 function confirmCalendarExport() {
@@ -360,6 +364,7 @@ elements.exportIcal.addEventListener("click", () => {
   requestCalendarExport(state.outputs);
 });
 elements.exportDialog.addEventListener("close", () => {
+  document.documentElement.classList.remove("has-open-dialog");
   if (elements.exportDialog.returnValue === "confirm") confirmCalendarExport();
   else state.pendingExports = [];
 });

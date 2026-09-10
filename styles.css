@@ -22,8 +22,15 @@
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
   scrollbar-color: var(--navy) var(--paper-deep);
   scrollbar-width: thin;
+}
+
+html.has-open-dialog,
+html.has-open-dialog body {
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 /* Page rail — styled like a slim timetable index rather than browser chrome. */
@@ -680,6 +687,14 @@ textarea:focus { border-color: var(--gold); }
   text-decoration: none;
 }
 
+.footer-email-reveal {
+  padding: 0;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+}
+
 .footer-email:hover {
   color: var(--paper-bright);
   text-decoration: underline;
@@ -732,6 +747,8 @@ textarea:focus { border-color: var(--gold); }
 .export-dialog {
   width: min(92vw, 610px);
   max-height: min(88vh, 720px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 0;
   border: 1px solid var(--paper-bright);
   border-radius: 0;
