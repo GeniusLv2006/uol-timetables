@@ -18,6 +18,8 @@ test("security policy permits automatic Cloudflare Web Analytics injection", () 
 
 test("deployed HTML does not expose a harvestable contact address", () => {
   assert.match(homepage, /id="reveal-email"/);
+  assert.match(homepage, /class="footer-contact-action"/);
+  assert.match(homepage, /Protected from automated scraping\./);
   assert.doesNotMatch(homepage, /mailto:/i);
   assert.doesNotMatch(homepage, /[\w.+-]+@[\w.-]+\.[a-z]{2,}/i);
 });

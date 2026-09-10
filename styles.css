@@ -659,7 +659,7 @@ textarea:focus { border-color: var(--gold); }
   grid-template-columns: minmax(360px, 1fr) minmax(330px, 1.25fr) minmax(190px, .7fr);
   gap: clamp(32px, 4vw, 68px);
   align-items: start;
-  padding-bottom: 38px;
+  padding-bottom: 19px;
 }
 
 .footer-label {
@@ -672,7 +672,7 @@ textarea:focus { border-color: var(--gold); }
 }
 
 .footer-identity strong,
-.footer-privacy p,
+.footer-value,
 .footer-email {
   display: block;
   margin: 0;
@@ -683,16 +683,76 @@ textarea:focus { border-color: var(--gold); }
 
 .footer-identity strong { white-space: nowrap; }
 
-.footer-email {
-  text-decoration: none;
+.footer-meta-note,
+.footer-contact-note {
+  max-width: 330px;
+  min-height: 27px;
+  margin: 10px 0 0;
+  color: rgba(252, 249, 241, .5);
+  font: 600 9px/1.5 var(--mono);
+  letter-spacing: .025em;
 }
 
-.footer-email-reveal {
-  padding: 0;
-  border: 0;
+.footer-email {
+  width: fit-content;
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-underline-offset: 5px;
+}
+
+.footer-email::after {
+  content: " →";
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: .68em;
+}
+
+.footer-contact-action {
+  display: inline-flex;
+  width: min(100%, 250px);
+  min-height: 46px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 0 15px;
+  border: 1px solid var(--gold);
+  color: var(--paper-bright);
   text-align: left;
   cursor: pointer;
-  background: none;
+  background: rgba(241, 184, 58, .06);
+  font: 700 10px/1 var(--mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.footer-primary-row {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+}
+
+.footer-contact-arrow {
+  color: var(--gold);
+  font-size: 17px;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.footer-contact-action:hover {
+  color: var(--ink);
+  background: var(--gold);
+  transform: translateY(-1px);
+}
+
+.footer-contact-action:hover .footer-contact-arrow {
+  color: var(--ink);
+  transform: translateX(3px);
+}
+
+.footer-contact-action:active { transform: translateY(0); }
+
+.footer-contact-note {
+  max-width: 250px;
 }
 
 .footer-email:hover {
@@ -703,6 +763,7 @@ textarea:focus { border-color: var(--gold); }
 }
 
 .footer-email:focus-visible,
+.footer-contact-action:focus-visible,
 .footer-legal a:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 5px;

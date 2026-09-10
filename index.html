@@ -450,15 +450,23 @@
       <div class="footer-main">
         <div class="footer-identity">
           <span class="footer-label">Local Timetable Utility</span>
-          <strong>UoL Timetable Converter</strong>
+          <div class="footer-primary-row"><strong>UoL Timetable Converter</strong></div>
+          <p class="footer-meta-note">JSON to iCalendar · Runs entirely in your browser.</p>
         </div>
         <div class="footer-privacy">
           <span class="footer-label">Privacy</span>
-          <p>Your timetable never leaves this browser.</p>
+          <div class="footer-primary-row"><p class="footer-value">Your timetable never leaves this browser.</p></div>
+          <p class="footer-meta-note">No uploads · No account · Profiles saved in this browser.</p>
         </div>
         <div class="footer-contact">
           <span class="footer-label">Contact</span>
-          <button class="footer-email footer-email-reveal" id="reveal-email" type="button">Reveal email address</button>
+          <div class="footer-primary-row">
+            <button class="footer-contact-action" id="reveal-email" type="button" aria-describedby="contact-protection-note">
+              <span>Show email address</span>
+              <span class="footer-contact-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+          <p class="footer-contact-note" id="contact-protection-note">Protected from automated scraping.</p>
         </div>
       </div>
       <div class="footer-legal">

@@ -19,7 +19,10 @@ export function installContactReveal(button) {
     link.className = "footer-email";
     link.href = `mailto:${address}`;
     link.textContent = address;
+    link.setAttribute("aria-describedby", "contact-protection-note");
     button.replaceWith(link);
+    const note = document.querySelector("#contact-protection-note");
+    if (note) note.textContent = "Click the address to open your email app.";
     link.focus();
   }, { once: true });
 }
