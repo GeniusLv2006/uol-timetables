@@ -20,8 +20,7 @@
         <span>UoL Timetable Converter</span>
       </a>
       <div class="masthead-meta">
-        <span>University of Liverpool</span>
-        <span>Local utility · No uploads</span>
+        <span class="unofficial-marker">Unofficial Tool</span>
       </div>
     </header>
 
@@ -119,7 +118,7 @@
           </div>
         </div>
 
-        <div class="workbench">
+        <div class="workbench" id="workbench" data-mode="edit">
           <div class="input-panel">
             <div class="panel-header">
               <div>
@@ -127,9 +126,27 @@
                 <h3>Timetable JSON</h3>
               </div>
               <div class="panel-actions">
+                <button id="review-json" class="quiet-button" type="button" hidden>Review Calendar</button>
                 <button id="load-sample" class="quiet-button" type="button">Load Sample</button>
                 <button id="clear-json" class="quiet-button" type="button">Clear</button>
               </div>
+            </div>
+
+            <div class="input-compact-summary" id="input-compact-summary">
+              <p class="compact-status">JSON Imported</p>
+              <strong>Timetable data is valid and ready to review.</strong>
+              <dl>
+                <div>
+                  <dt id="compact-character-count">0</dt>
+                  <dd>Characters</dd>
+                </div>
+                <div>
+                  <dt id="compact-event-count">0</dt>
+                  <dd>Source Events</dd>
+                </div>
+              </dl>
+              <p class="compact-note">The original JSON remains in this browser and can be reopened without importing it again.</p>
+              <button id="edit-json" type="button" aria-controls="json-input" aria-expanded="false">Edit JSON</button>
             </div>
 
             <div class="ingest-actions">
@@ -445,13 +462,30 @@
         </div>
       </div>
       <div class="footer-legal">
-        <div class="footer-legal-copy">
-          <p class="footer-disclaimer"><strong>Independent software.</strong> UoL Timetable Converter is not affiliated with, endorsed by, or operated by the University of Liverpool. Always verify exported events against your official timetable.</p>
-          <p class="footer-copyright">© 2026 Tingkai Lyu. All rights reserved.</p>
-        </div>
+        <p class="footer-disclaimer"><strong>Unofficial independent tool.</strong> This software is not affiliated with, endorsed by, or operated by the University of Liverpool.<span class="footer-disclaimer-details">It is provided as-is and may contain extraction or conversion errors. Exported calendars are static and do not receive timetable updates. My Timetable remains the authoritative source.</span></p>
+        <p class="footer-copyright">© 2026 Tingkai Lyu. All rights reserved.</p>
         <a href="#top">Back To Top <span aria-hidden="true">↑</span></a>
       </div>
     </footer>
+
+    <dialog class="export-dialog" id="export-dialog" aria-labelledby="export-dialog-title" aria-describedby="export-dialog-description">
+      <form method="dialog">
+        <p class="export-dialog-kicker">Static calendar export</p>
+        <h2 id="export-dialog-title">Before You Export</h2>
+        <p id="export-dialog-description">
+          This is an unofficial snapshot of the timetable shown.
+        </p>
+        <ul>
+          <li>Extraction or conversion errors are possible.</li>
+          <li>University timetable changes will not update this file automatically.</li>
+          <li>Verify event details and teaching weeks in My Timetable.</li>
+        </ul>
+        <div class="export-dialog-actions">
+          <button class="dialog-cancel" id="cancel-export" type="submit" value="cancel">Back and Review</button>
+          <button class="dialog-confirm" id="confirm-export" type="submit" value="confirm">Export Static Calendar</button>
+        </div>
+      </form>
+    </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script type="module" src="js/main.js"></script>

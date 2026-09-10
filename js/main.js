@@ -17,6 +17,8 @@ const state = {
   preferences: null,
   outputs: [],
   dataSignature: "",
+  pendingExports: [],
+  compactAfterPaste: false,
   inputTimer: null,
   toastTimer: null,
 };
@@ -55,6 +57,21 @@ function downloadCalendar(output) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function requestCalendarExport(outputs) {
+  const requestedOutputs = Array.isArray(outputs) ? outputs : [outputs];
+  if (!requestedOutputs.length) return;
+  state.pendingExports = requestedOutputs;
+  elements.exportDialog.returnValue = "";
+  elements.exportDialog.showModal();
+}
+
+function confirmCalendarExport() {
+  const outputs = state.pendingExports;
+  state.pendingExports = [];
+  outputs.forEach((output, index) => setTimeout(() => downloadCalendar(output), index * 120));
+  showToast(outputs.length === 1 ? `${outputs[0].filename} exported as a static snapshot.` : `${outputs.length} static calendar files exported.`);
+}
+
 function refreshOutput() {
   if (!state.payload || !state.preferences) return;
   try {
@@ -71,7 +88,7 @@ function refreshOutput() {
       occurrences,
       issues,
       outputs: state.outputs,
-    }, downloadCalendar);
+    }, requestCalendarExport);
     elements.liveStatus.textContent = entries.length ? "Valid Timetable · Ready To Export" : "No Events Match Filters";
     elements.liveStatus.className = entries.length ? "live-status valid" : "live-status invalid";
     elements.validationMessage.hidden = true;
@@ -84,7 +101,16 @@ function refreshOutput() {
   }
 }
 
-function renderValid(payload) {
+function setWorkbenchCompact(compact) {
+  const isCompact = compact && Boolean(state.payload);
+  elements.workbench.classList.toggle("is-compact", isCompact);
+  elements.workbench.dataset.mode = isCompact ? "review" : "edit";
+  elements.editJson.setAttribute("aria-expanded", String(!isCompact));
+  elements.reviewJson.hidden = isCompact || !state.payload;
+  if (isCompact) requestAnimationFrame(() => elements.editJson.focus());
+}
+
+function renderValid(payload, compactOnSuccess = false) {
   const signature = JSON.stringify(payload.events.map((event) => [event.activity, event.day, event.start, event.teachingWeeks]));
   state.payload = payload;
   if (signature !== state.dataSignature || !state.preferences) {
@@ -96,7 +122,11 @@ function renderValid(payload) {
   elements.summary.hidden = false;
   elements.customizer.hidden = false;
   elements.validationMessage.hidden = true;
+  elements.compactCharacterCount.textContent = elements.jsonInput.value.length.toLocaleString();
+  elements.compactEventCount.textContent = payload.events.length.toLocaleString();
   refreshOutput();
+  if (compactOnSuccess) setWorkbenchCompact(true);
+  else elements.reviewJson.hidden = false;
 }
 
 function renderInvalid(message, isEmpty = false) {
@@ -105,13 +135,14 @@ function renderInvalid(message, isEmpty = false) {
   elements.summary.hidden = true;
   elements.summaryEmpty.hidden = false;
   elements.customizer.hidden = true;
+  setWorkbenchCompact(false);
   elements.liveStatus.textContent = isEmpty ? "Waiting For Timetable Data" : "JSON Needs Attention";
   elements.liveStatus.className = isEmpty ? "live-status" : "live-status invalid";
   elements.validationMessage.hidden = isEmpty;
   elements.validationMessage.textContent = message;
 }
 
-function processJson() {
+function processJson({ compactOnSuccess = false } = {}) {
   const value = elements.jsonInput.value.trim();
   elements.characterCount.textContent = `${elements.jsonInput.value.length.toLocaleString()} Characters`;
   if (!value) {
@@ -119,9 +150,11 @@ function processJson() {
     return;
   }
   try {
-    renderValid(validatePayload(JSON.parse(value)));
+    renderValid(validatePayload(JSON.parse(value)), compactOnSuccess);
+    return true;
   } catch (error) {
     renderInvalid(error.message);
+    return false;
   }
 }
 
@@ -132,7 +165,7 @@ async function loadFile(file) {
     return;
   }
   elements.jsonInput.value = await file.text();
-  processJson();
+  processJson({ compactOnSuccess: true });
   showToast(`${file.name} loaded.`);
 }
 
@@ -155,8 +188,8 @@ elements.pasteClipboard.addEventListener("click", async () => {
     const text = await navigator.clipboard.readText();
     if (!text.trim()) throw new Error("empty");
     elements.jsonInput.value = text;
-    processJson();
-    elements.jsonInput.scrollIntoView({ behavior: "smooth", block: "center" });
+    processJson({ compactOnSuccess: true });
+    elements.workbench.scrollIntoView({ behavior: "smooth", block: "start" });
     showToast("Clipboard content pasted.");
   } catch {
     elements.jsonInput.focus();
@@ -164,9 +197,14 @@ elements.pasteClipboard.addEventListener("click", async () => {
   }
 });
 
-elements.jsonInput.addEventListener("input", () => {
+elements.jsonInput.addEventListener("paste", () => {
+  state.compactAfterPaste = true;
+});
+elements.jsonInput.addEventListener("input", (event) => {
   clearTimeout(state.inputTimer);
-  state.inputTimer = setTimeout(processJson, 180);
+  const compactOnSuccess = state.compactAfterPaste || event.inputType === "insertFromPaste";
+  state.compactAfterPaste = false;
+  state.inputTimer = setTimeout(() => processJson({ compactOnSuccess }), 180);
 });
 elements.fileInput.addEventListener("change", () => loadFile(elements.fileInput.files[0]));
 for (const type of ["dragenter", "dragover"]) {
@@ -187,7 +225,7 @@ elements.loadSample.addEventListener("click", async () => {
     const response = await fetch("timetable.sample.json");
     if (!response.ok) throw new Error();
     elements.jsonInput.value = JSON.stringify(await response.json(), null, 2);
-    processJson();
+    processJson({ compactOnSuccess: true });
     showToast("Included sample loaded.");
   } catch {
     showToast("Start the local server to load the included sample.");
@@ -198,6 +236,16 @@ elements.clearJson.addEventListener("click", () => {
   elements.fileInput.value = "";
   processJson();
   elements.jsonInput.focus();
+});
+elements.editJson.addEventListener("click", () => {
+  setWorkbenchCompact(false);
+  requestAnimationFrame(() => {
+    elements.jsonInput.focus();
+    elements.jsonInput.scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+});
+elements.reviewJson.addEventListener("click", () => {
+  processJson({ compactOnSuccess: true });
 });
 
 document.querySelectorAll(".config-tab").forEach((tab) => {
@@ -309,8 +357,14 @@ elements.deleteProfile.addEventListener("click", () => {
 
 elements.exportIcal.addEventListener("click", () => {
   if (!state.outputs.length) return;
-  state.outputs.forEach((output, index) => setTimeout(() => downloadCalendar(output), index * 120));
-  showToast(state.outputs.length === 1 ? `${state.outputs[0].filename} exported.` : `${state.outputs.length} calendar files exported.`);
+  requestCalendarExport(state.outputs);
+});
+elements.exportDialog.addEventListener("close", () => {
+  if (elements.exportDialog.returnValue === "confirm") confirmCalendarExport();
+  else state.pendingExports = [];
+});
+elements.exportDialog.addEventListener("click", (event) => {
+  if (event.target === elements.exportDialog) elements.exportDialog.close("cancel");
 });
 elements.copyIcal.addEventListener("click", () => {
   if (!state.outputs.length) return;

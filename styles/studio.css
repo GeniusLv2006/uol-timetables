@@ -17,7 +17,7 @@
 }
 
 .customizer-head .eyebrow { margin-bottom: 12px; color: var(--gold-deep); }
-.customizer-head h3 { margin: 0; font: 400 clamp(30px, 3.2vw, 47px)/1.02 var(--serif); letter-spacing: -.025em; }
+.customizer-head h3 { margin: 0; font: 400 clamp(30px, 3.2vw, 47px)/1.02 var(--serif); letter-spacing: -.025em; text-wrap: balance; }
 
 .profile-dock {
   display: grid;
@@ -91,7 +91,7 @@
 .config-panel { animation: panel-in 220ms ease both; }
 .config-panel-heading { display: grid; grid-template-columns: 110px 1fr; gap: 20px; align-items: baseline; margin-bottom: 40px; }
 .config-panel-heading span { color: var(--gold-deep); font: 700 9px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; }
-.config-panel-heading h4 { max-width: 980px; margin: 0; font: 400 clamp(29px, 3vw, 43px)/1.08 var(--serif); letter-spacing: -.02em; text-wrap: pretty; }
+.config-panel-heading h4 { max-width: 980px; margin: 0; font: 400 clamp(29px, 3vw, 43px)/1.08 var(--serif); letter-spacing: -.02em; text-wrap: balance; }
 
 .more-settings-cue {
   display: flex;
