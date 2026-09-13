@@ -471,7 +471,11 @@
       </div>
       <div class="footer-legal">
         <p class="footer-disclaimer"><strong>Unofficial independent tool.</strong> This software is not affiliated with, endorsed by, or operated by the University of Liverpool.<span class="footer-disclaimer-details">It is provided as-is and may contain extraction or conversion errors. Exported calendars are static and do not receive timetable updates. My Timetable remains the authoritative source.</span></p>
-        <p class="footer-copyright">© 2026 Tingkai Lyu. All rights reserved.</p>
+        <p class="footer-copyright">
+          © 2026 Tingkai Lyu. All rights reserved.
+          <span class="footer-copyright-separator" aria-hidden="true">·</span>
+          <button class="footer-privacy-link" id="open-privacy" type="button">Privacy</button>
+        </p>
         <a href="#top">Back To Top <span aria-hidden="true">↑</span></a>
       </div>
     </footer>
@@ -492,6 +496,62 @@
           <button class="dialog-cancel" id="cancel-export" type="submit" value="cancel">Back and Review</button>
           <button class="dialog-confirm" id="confirm-export" type="submit" value="confirm">Export Static Calendar</button>
         </div>
+      </form>
+    </dialog>
+
+    <dialog class="privacy-dialog" id="privacy-dialog" aria-labelledby="privacy-dialog-title" aria-describedby="privacy-dialog-description">
+      <form method="dialog">
+        <div class="privacy-dialog-heading">
+          <div>
+            <p class="privacy-dialog-kicker">Privacy &amp; Analytics</p>
+            <h2 id="privacy-dialog-title">Your Privacy Matters.</h2>
+          </div>
+          <button class="privacy-dialog-close" type="submit" value="close" aria-label="Close privacy settings">
+            <span aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <p class="privacy-dialog-description" id="privacy-dialog-description">
+          Your timetable JSON, calendar exports and saved profiles stay in this browser.
+          They are never sent to us or to Cloudflare.
+        </p>
+
+        <div class="privacy-facts">
+          <section>
+            <span class="privacy-fact-label">What Is Measured</span>
+            <p>Aggregate page visits, referrer host, country, browser and device type, and page-loading performance.</p>
+          </section>
+          <section>
+            <span class="privacy-fact-label">What Is Not Measured</span>
+            <p>Your timetable contents, calendar files, identity, or activity across other websites.</p>
+          </section>
+        </div>
+
+        <div class="analytics-control">
+          <div>
+            <strong>Cloudflare Web Analytics</strong>
+            <p id="analytics-control-description">Measures aggregate visits and page performance to help improve this website.</p>
+          </div>
+          <label class="analytics-switch">
+            <input id="analytics-enabled" type="checkbox" role="switch" aria-describedby="analytics-control-description analytics-choice-note" />
+            <span class="analytics-switch-track" aria-hidden="true"><span></span></span>
+            <span class="analytics-switch-state" id="analytics-switch-state">On</span>
+          </label>
+        </div>
+
+        <div class="privacy-preference-save" id="privacy-preference-save" hidden>
+          <p class="privacy-change-note" id="privacy-change-note" role="status">Changes take effect after a quick reload.</p>
+          <div class="privacy-dialog-actions">
+            <button class="dialog-cancel" type="submit" value="cancel">Cancel</button>
+            <button class="dialog-confirm" id="save-privacy" type="button">Save &amp; Reload</button>
+          </div>
+        </div>
+
+        <p class="analytics-choice-note" id="analytics-choice-note">
+          No analytics cookies, advertising profiles, or cross-site tracking.
+          If you turn analytics off, one first-party preference cookie remembers your choice.
+          <a href="https://www.cloudflare.com/web-analytics/" target="_blank" rel="noreferrer">About Cloudflare Web Analytics</a>
+        </p>
       </form>
     </dialog>
 

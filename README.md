@@ -99,6 +99,12 @@ by Cloudflare's automatically injected Web Analytics beacon from
 endpoint; no broad third-party connection permission is enabled. Do not add
 `no-transform` to `Cache-Control`, because that prevents automatic beacon injection.
 
+The footer privacy control stores `uol_timetable_analytics=disabled` when a visitor
+opts out. In the Cloudflare dashboard, pair it with a Configuration Rule that sets
+**Disable Real User Monitoring (RUM)** when the request cookie contains that value.
+The rule is required because automatic beacon injection happens at Cloudflare's edge,
+before the site's JavaScript runs.
+
 ## Rebuild the calendar
 
 ```bash

@@ -10,6 +10,7 @@ import {
   validatePreferences,
 } from "./preferences.js";
 import { loadProfiles, saveProfiles } from "./profiles.js";
+import { installPrivacyControls } from "./privacy.js";
 import { validatePayload } from "./timetable.js";
 import { renderProfiles, renderSummary, syncControls } from "./ui.js";
 
@@ -25,6 +26,15 @@ const state = {
 };
 
 installContactReveal(document.querySelector("#reveal-email"));
+installPrivacyControls({
+  openButton: document.querySelector("#open-privacy"),
+  dialog: document.querySelector("#privacy-dialog"),
+  toggle: document.querySelector("#analytics-enabled"),
+  stateLabel: document.querySelector("#analytics-switch-state"),
+  saveRegion: document.querySelector("#privacy-preference-save"),
+  saveButton: document.querySelector("#save-privacy"),
+  notify: showToast,
+});
 
 function showToast(message) {
   clearTimeout(state.toastTimer);

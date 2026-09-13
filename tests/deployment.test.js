@@ -5,6 +5,7 @@ import test from "node:test";
 const headers = await readFile(new URL("../_headers", import.meta.url), "utf8");
 const homepage = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const mainScript = await readFile(new URL("../js/main.js", import.meta.url), "utf8");
+const privacyScript = await readFile(new URL("../js/privacy.js", import.meta.url), "utf8");
 const styles = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 
 test("security policy permits automatic Cloudflare Web Analytics injection", () => {
@@ -33,4 +34,18 @@ test("export dialog locks background scrolling until it closes", () => {
   assert.match(mainScript, /addEventListener\("close",[\s\S]*?classList\.remove\("has-open-dialog"\)/);
   assert.match(styles, /html\.has-open-dialog,\s*html\.has-open-dialog body\s*{[^}]*overflow:\s*hidden/s);
   assert.match(styles, /\.export-dialog\s*{[^}]*overscroll-behavior:\s*contain/s);
+});
+
+test("privacy controls disclose analytics and persist an opt-out", () => {
+  assert.match(homepage, /id="open-privacy"/);
+  assert.match(homepage, /id="privacy-dialog"/);
+  assert.match(homepage, /id="analytics-enabled"[^>]*role="switch"/);
+  assert.match(homepage, /id="save-privacy"[^>]*>Save &amp; Reload<\/button>/);
+  assert.match(homepage, /<strong>Cloudflare Web Analytics<\/strong>/);
+  assert.match(homepage, /No analytics cookies, advertising profiles, or cross-site tracking/);
+  assert.match(mainScript, /installPrivacyControls/);
+  assert.match(privacyScript, /uol_timetable_analytics/);
+  assert.match(privacyScript, /saveButton\.addEventListener\("click"/);
+  assert.match(privacyScript, /sessionStorage\.setItem/);
+  assert.match(privacyScript, /location\.reload\(\)/);
 });
