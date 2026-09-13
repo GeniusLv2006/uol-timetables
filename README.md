@@ -93,10 +93,11 @@ For Cloudflare Workers Builds, connect this repository and configure:
 Every build starts from an empty `dist/` and copies only `index.html`, the stylesheet
 and JavaScript directories, the icon, the fictional sample, and `_headers`.
 
-The Content Security Policy permits Cloudflare's automatically injected Web Analytics
-beacon from `static.cloudflareinsights.com`. Its reports use the same-origin
-`/cdn-cgi/rum` endpoint; no broad third-party connection permission is enabled. Do not
-add `no-transform` to `Cache-Control`, because that prevents automatic beacon injection.
+The Content Security Policy permits both the unversioned and version-suffixed paths used
+by Cloudflare's automatically injected Web Analytics beacon from
+`static.cloudflareinsights.com`. Its reports use the same-origin `/cdn-cgi/rum`
+endpoint; no broad third-party connection permission is enabled. Do not add
+`no-transform` to `Cache-Control`, because that prevents automatic beacon injection.
 
 ## Rebuild the calendar
 

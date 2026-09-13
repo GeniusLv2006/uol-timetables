@@ -12,6 +12,10 @@ test("security policy permits automatic Cloudflare Web Analytics injection", () 
     headers,
     /script-src[^\n]*https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js/,
   );
+  assert.match(
+    headers,
+    /script-src[^\n]*https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js\//,
+  );
   assert.match(headers, /connect-src[^\n]*'self'/);
   assert.doesNotMatch(headers, /no-transform/i);
 });
