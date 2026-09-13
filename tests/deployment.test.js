@@ -42,7 +42,9 @@ test("privacy controls disclose analytics and persist an opt-out", () => {
   assert.match(homepage, /id="analytics-enabled"[^>]*role="switch"/);
   assert.match(homepage, /id="save-privacy"[^>]*>Save &amp; Reload<\/button>/);
   assert.match(homepage, /<strong>Cloudflare Web Analytics<\/strong>/);
-  assert.match(homepage, /No analytics cookies, advertising profiles, or cross-site tracking/);
+  assert.match(homepage, /Page visits, pages viewed, referrer, country, browser, operating system, device type and page-loading performance/);
+  assert.match(homepage, /Cloudflare processes these measurements to provide Web Analytics/);
+  assert.match(homepage, /one first-party preference cookie for one year to remember your choice/);
   assert.match(mainScript, /installPrivacyControls/);
   assert.match(privacyScript, /uol_timetable_analytics/);
   assert.match(privacyScript, /saveButton\.addEventListener\("click"/);
