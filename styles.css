@@ -1042,8 +1042,8 @@ textarea:focus { border-color: var(--gold); }
 }
 .analytics-choice-note {
   margin: 16px 0 0;
-  color: rgba(252, 249, 241, .52);
-  font-size: 10px;
+  color: rgba(252, 249, 241, .64);
+  font-size: 11px;
   line-height: 1.6;
 }
 .analytics-choice-note a { color: var(--paper-bright); text-decoration-color: var(--gold); text-underline-offset: 3px; }
