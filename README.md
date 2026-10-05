@@ -35,6 +35,13 @@ instead of one long settings form:
 The output panel updates immediately, detects duplicate or overlapping sessions,
 and lists every generated calendar when split export is enabled. Export preferences
 can be saved as named profiles in browser-local storage; timetable JSON is not saved.
+Applying a profile carries style choices such as titles, aliases, reminders,
+filters, and splitting, but keeps the loaded semester's Week One, semester bounds,
+included and excluded weeks, reading week, calendar name, and description.
+
+Changing Week One moves the semester bounds with it. If the loaded data has no
+Week One and none is known for its academic year and semester, the data still
+loads and the Schedule settings ask for it.
 
 ## Project structure
 
@@ -46,18 +53,24 @@ can be saved as named profiles in browser-local storage; timetable JSON is not s
 - `styles.css` — shared layout, typography, colour, and component styles.
 - `styles/studio.css` — Personalisation Studio tabs, panels, and responsive rules.
 - `js/main.js` — application state and event orchestration.
-- `js/timetable.js` — JSON parsing, validation, and normalisation.
+- `js/constants.js` — known Week One dates, weekday offsets, and description fields.
+- `js/timetable.js` — JSON parsing, validation, and week arithmetic.
 - `js/preferences.js` and `js/profiles.js` — export preferences and saved profiles.
 - `js/calendar.js` — RFC 5545 generation, recurrence, alarms, and split outputs.
+- `js/timezone.js` — `VTIMEZONE` rules generated from the browser's timezone data.
 - `js/ui.js` and `js/dom.js` — rendering and DOM references.
 - `js/bookmarklet.js` — self-contained clipboard extractor and bookmarklet builder.
 - `js/diagnostics.js` — duplicate and timetable clash detection.
-- `tests/calendar.test.js` — converter and diagnostics regression tests.
+- `js/privacy.js` — analytics opt-out dialog and preference cookie.
+- `js/contact.js` — contact address revealed only on request.
+- `tests/calendar.test.js` — calendar, preference, and diagnostics regression tests.
 - `tests/converter.test.js` — checks the Python converter matches the web app's default export.
-- `convert_to_ical.py` — converts the JSON schema to RFC 5545 iCalendar using the web app's default settings.
+- `tests/deployment.test.js` and `tests/contact.test.js` — security headers, privacy, and contact checks.
+- `convert_to_ical.py` — command-line converter matching the web app's default settings.
 - `scripts/build.mjs` — creates `dist/` from an explicit public-file allowlist.
 - `_headers` — security and cache headers applied to static assets.
 - `wrangler.jsonc` — Cloudflare Workers Static Assets configuration.
+- `.github/workflows/ci.yml` — runs `npm run check` on pushes to `main` and on pull requests.
 
 The browser application remains dependency-free. The build step only copies approved
 public assets; it does not bundle application code or include personal timetable files.
@@ -74,16 +87,18 @@ Run the complete test, build, and Cloudflare dry-run verification with:
 npm run check
 ```
 
+The tests use Node.js 24 (see `.nvmrc`). The Python parity tests run when
+`python3` is available and are skipped otherwise.
+
 ## Deploy with Cloudflare Workers
 
 The production bundle is served by Workers Static Assets without a Worker script,
-API, server-side runtime, or environment secrets.
+API, server-side runtime, or environment secrets. Production deploys automatically
+through Cloudflare Workers Builds whenever `main` is pushed, so changes should go
+through a pull request. `npm run deploy` deploys from a local checkout and is only
+needed as a manual fallback.
 
-```bash
-npm run deploy
-```
-
-For Cloudflare Workers Builds, connect this repository and configure:
+Workers Builds is configured with:
 
 - Production branch: `main`
 - Build command: `npm run build`
@@ -105,18 +120,49 @@ opts out. In the Cloudflare dashboard, pair it with a Configuration Rule that se
 The rule is required because automatic beacon injection happens at Cloudflare's edge,
 before the site's JavaScript runs.
 
-## Rebuild the calendar
+## Command-line converter
 
 ```bash
 python3 convert_to_ical.py timetable.semester1.json timetable.semester1.ics
 ```
 
-The calendar uses `Europe/London`, so classes stay at the correct Liverpool local
-time when British Summer Time ends. The Python converter supports only
-`Europe/London`; use the web app for other timezones. Semester 1 week 1 is anchored to Monday,
-28 September 2026, matching the University's published 2026/27 term dates.
+The script needs only the Python standard library and produces the same file as
+the web app's default settings. Unlike the web app, it does not look up known
+Week One dates, so the JSON must include `weekOneMonday`. It supports only
+`Europe/London`; use the web app for other timezones.
+
+## Week One dates
+
+Teaching week numbers such as `S1 03` are turned into dates by counting whole
+weeks from the semester's first teaching Monday. Known dates live in
+`KNOWN_WEEK_ONE_DATES` in `js/constants.js`, keyed by `academicYear:semester`,
+and are taken from the University's [term dates](https://www.liverpool.ac.uk/term-dates/).
+The bookmarklet and the web app both read this table, so a new academic year
+needs only one entry there.
+
+| Academic year | Semester | Week One |
+| --- | --- | --- |
+| 2026/27 | 1 | 28 September 2026 |
+| 2027/28 | 1 | 27 September 2027 |
+
+Semester 2 dates are not listed yet. Its teaching is split by a three-week Easter
+break, and until a real Semester 2 timetable confirms whether `S2` week numbers
+count the break weeks, the converter cannot be sure that counting whole weeks
+gives the right dates. Without a listed date, set Week One in the Schedule settings
+and check the dates of sessions after the Easter break.
 
 ## JSON schema
+
+The top-level object contains:
+
+- `schemaVersion` — currently `1`.
+- `academicYear` (for example `2026/27`) and `semester` (`1` or `2`).
+- `weekOneMonday` — the first teaching Monday as `YYYY-MM-DD`. Optional when a
+  known date exists for the academic year and semester.
+- `timezone` — an IANA timezone name; defaults to `Europe/London`.
+- `calendarName`, `source` (the timetable page URL), and `generatedAt` (an ISO
+  timestamp used as the calendar's `DTSTAMP`).
+- `events` — the non-empty list of timetable patterns described below.
 
 Each item in `events` contains:
 
