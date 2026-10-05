@@ -269,23 +269,23 @@
           </div>
 
           <div class="customizer-body">
-            <nav class="config-nav" aria-label="Calendar Configuration">
-              <button class="config-tab active" data-panel="naming-panel" type="button">
+            <nav class="config-nav" role="tablist" aria-label="Calendar Configuration">
+              <button class="config-tab active" id="naming-tab" type="button" role="tab" aria-controls="naming-panel" aria-selected="true" tabindex="0">
                 <span>01</span><strong>Naming</strong><small>Titles and appearance</small>
               </button>
-              <button class="config-tab" data-panel="details-panel" type="button">
+              <button class="config-tab" id="details-tab" type="button" role="tab" aria-controls="details-panel" aria-selected="false" tabindex="-1">
                 <span>02</span><strong>Details</strong><small>Descriptions and places</small>
               </button>
-              <button class="config-tab" data-panel="schedule-panel" type="button">
+              <button class="config-tab" id="schedule-tab" type="button" role="tab" aria-controls="schedule-panel" aria-selected="false" tabindex="-1">
                 <span>03</span><strong>Schedule</strong><small>Weeks and recurrence</small>
               </button>
-              <button class="config-tab" data-panel="delivery-panel" type="button">
+              <button class="config-tab" id="delivery-tab" type="button" role="tab" aria-controls="delivery-panel" aria-selected="false" tabindex="-1">
                 <span>04</span><strong>Delivery</strong><small>Filters and splitting</small>
               </button>
             </nav>
 
             <div class="config-stage">
-              <section class="config-panel active" id="naming-panel">
+              <section class="config-panel active" id="naming-panel" role="tabpanel" aria-labelledby="naming-tab" tabindex="0">
                 <div class="config-panel-heading">
                   <span>01 / Naming</span>
                   <h4>Choose how each event is named.</h4>
@@ -326,7 +326,7 @@
                 </div>
               </section>
 
-              <section class="config-panel" id="details-panel" hidden>
+              <section class="config-panel" id="details-panel" role="tabpanel" aria-labelledby="details-tab" tabindex="0" hidden>
                 <div class="config-panel-heading">
                   <span>02 / Details</span>
                   <h4>Choose the details each class carries.</h4>
@@ -374,7 +374,7 @@
                 </div>
               </section>
 
-              <section class="config-panel" id="schedule-panel" hidden>
+              <section class="config-panel" id="schedule-panel" role="tabpanel" aria-labelledby="schedule-tab" tabindex="0" hidden>
                 <div class="config-panel-heading">
                   <span>03 / Schedule</span>
                   <h4>Set the academic frame and recurrence strategy.</h4>
@@ -409,7 +409,7 @@
                 </div>
               </section>
 
-              <section class="config-panel" id="delivery-panel" hidden>
+              <section class="config-panel" id="delivery-panel" role="tabpanel" aria-labelledby="delivery-tab" tabindex="0" hidden>
                 <div class="config-panel-heading">
                   <span>04 / Delivery</span>
                   <h4>Choose what is included and how files are divided.</h4>

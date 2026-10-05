@@ -83,6 +83,7 @@
 .config-tab strong { font: 400 20px/1 var(--serif); }
 .config-tab small { color: #727873; font: 600 8px/1.2 var(--mono); letter-spacing: .05em; text-transform: uppercase; }
 .config-tab:hover { background: rgba(255,255,255,.45); }
+.config-tab:focus-visible { outline: 3px solid var(--gold); outline-offset: -3px; }
 .config-tab.active { color: var(--paper-bright); background: var(--navy); }
 .config-tab.active span { color: var(--gold); }
 .config-tab.active small { color: rgba(255,255,255,.58); }

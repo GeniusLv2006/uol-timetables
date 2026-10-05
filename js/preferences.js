@@ -10,12 +10,19 @@ export function isMondayDate(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value || "") && !Number.isNaN(date.valueOf()) && date.getUTCDay() === 1;
 }
 
+// The default bounds span every source session, counted from weekOneMonday.
+function semesterBounds(payload, weekOneMonday) {
+  if (!isMondayDate(weekOneMonday)) return { semesterStart: "", semesterEnd: "" };
+  const dates = payload.events.flatMap((event) =>
+    sourceWeeks(event).map((week) => dateForWeek(weekOneMonday, week, event.day)),
+  ).sort((a, b) => a - b);
+  return {
+    semesterStart: dates[0]?.toISOString().slice(0, 10) || "",
+    semesterEnd: dates.at(-1)?.toISOString().slice(0, 10) || "",
+  };
+}
+
 export function defaultPreferences(payload) {
-  const sourceOccurrences = isMondayDate(payload.weekOneMonday)
-    ? payload.events.flatMap((event) =>
-      sourceWeeks(event).map((week) => dateForWeek(payload.weekOneMonday, week, event.day)),
-    ).sort((a, b) => a - b)
-    : [];
   const modules = [...new Set(payload.events.map((event) => event.moduleCode))].sort();
   const locations = [...new Set(payload.events.map((event) => event.location).filter(Boolean))].sort();
   return {
@@ -37,8 +44,7 @@ export function defaultPreferences(payload) {
     recurrenceMode: "recurring",
     weekOneMonday: payload.weekOneMonday,
     timezone: payload.timezone,
-    semesterStart: sourceOccurrences[0]?.toISOString().slice(0, 10) || "",
-    semesterEnd: sourceOccurrences.at(-1)?.toISOString().slice(0, 10) || "",
+    ...semesterBounds(payload, payload.weekOneMonday),
     includeWeeks: "",
     excludeWeeks: "",
     readingWeek: "",
@@ -102,6 +108,29 @@ export function changeWeekOne(preferences, value) {
   const shift = (date) => (date ? new Date(new Date(`${date}T00:00:00Z`).valueOf() + offset).toISOString().slice(0, 10) : date);
   next.semesterStart = shift(preferences.semesterStart);
   next.semesterEnd = shift(preferences.semesterEnd);
+  return next;
+}
+
+function semesterKey(payload) {
+  return [payload.academicYear, payload.semester, payload.weekOneMonday].join("|");
+}
+
+// Carries preferences over when the loaded data is edited or replaced. Within
+// the same semester everything is kept, and bounds that still match the old
+// data's defaults follow the new data. Data for another semester keeps style
+// choices but takes its own semester fields.
+export function adoptPayload(preferences, previousPayload, payload) {
+  const next = reconcilePreferences(preferences, payloadInventory(previousPayload), payload);
+  if (semesterKey(payload) !== semesterKey(previousPayload)) {
+    const base = defaultPreferences(payload);
+    for (const field of SEMESTER_FIELDS) next[field] = base[field];
+    return next;
+  }
+  const before = semesterBounds(previousPayload, preferences.weekOneMonday);
+  const after = semesterBounds(payload, preferences.weekOneMonday);
+  for (const field of ["semesterStart", "semesterEnd"]) {
+    if (preferences[field] === before[field]) next[field] = after[field];
+  }
   return next;
 }
 

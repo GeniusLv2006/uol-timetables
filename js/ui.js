@@ -1,6 +1,7 @@
 import { DESCRIPTION_FIELDS } from "./constants.js";
 import { titleForEvent } from "./preferences.js";
 import { longDate } from "./timetable.js";
+import { canonicalTimezone } from "./timezone.js";
 
 export function renderOutputFiles(elements, outputs, onDownload) {
   elements.outputFiles.replaceChildren(...outputs.map((output, index) => {
@@ -32,7 +33,7 @@ export function renderSummary(elements, { payload, preferences, entries, occurre
   elements.summaryName.textContent = preferences.calendarName;
   elements.summaryYear.textContent = payload.academicYear || "Not Specified";
   elements.summaryWeekOne.textContent = longDate(new Date(`${preferences.weekOneMonday}T00:00:00Z`));
-  elements.summaryTimezone.textContent = preferences.timezone;
+  elements.summaryTimezone.textContent = canonicalTimezone(preferences.timezone);
   elements.summaryFirstEvent.textContent = longDate(occurrences[0]?.date);
   elements.summaryLastEvent.textContent = longDate(occurrences.at(-1)?.date);
   elements.metricModules.textContent = modules.length;
@@ -51,6 +52,20 @@ export function renderSummary(elements, { payload, preferences, entries, occurre
   elements.copyIcal.disabled = !outputs.length;
   renderDiagnostics(elements, issues);
   renderOutputFiles(elements, outputs, onDownload);
+}
+
+// Replaces figures from the last valid render so nothing stale can be exported.
+export function renderSummaryUnavailable(elements, preferences, message) {
+  elements.summaryName.textContent = preferences?.calendarName || "—";
+  for (const element of [elements.summaryYear, elements.summaryWeekOne, elements.summaryTimezone, elements.summaryFirstEvent, elements.summaryLastEvent]) element.textContent = "—";
+  for (const element of [elements.metricModules, elements.metricPatterns, elements.metricSessions]) element.textContent = "—";
+  elements.moduleKey.replaceChildren();
+  elements.titleExample.textContent = "—";
+  elements.exportCaption.textContent = message;
+  elements.exportIcal.disabled = true;
+  elements.copyIcal.disabled = true;
+  renderDiagnostics(elements, []);
+  renderOutputFiles(elements, [], () => {});
 }
 
 function renderMappingList(container, values, preferences, preferenceKey, placeholder, onChange) {
