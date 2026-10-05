@@ -99,13 +99,14 @@ function isTime(value) {
 export function validatePayload(payload) {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) throw new Error("The JSON root must be an object.");
   if (!Array.isArray(payload.events) || !payload.events.length) throw new Error("The JSON must contain a non-empty events array.");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(payload.weekOneMonday || "")) {
-    const inferred = KNOWN_WEEK_ONE_DATES[`${payload.academicYear}:${payload.semester}`];
-    if (inferred) payload.weekOneMonday = inferred;
-    else throw new Error("weekOneMonday is missing or invalid (expected YYYY-MM-DD).");
+  // Without a known Week One the data still loads; the Schedule settings ask for it.
+  if (!payload.weekOneMonday) payload.weekOneMonday = KNOWN_WEEK_ONE_DATES[`${payload.academicYear}:${payload.semester}`] || "";
+  if (payload.weekOneMonday) {
+    const weekOne = new Date(`${payload.weekOneMonday}T00:00:00Z`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(payload.weekOneMonday) || Number.isNaN(weekOne.valueOf()) || weekOne.getUTCDay() !== 1) {
+      throw new Error("weekOneMonday must be a valid Monday date (YYYY-MM-DD).");
+    }
   }
-  const weekOne = new Date(`${payload.weekOneMonday}T00:00:00Z`);
-  if (Number.isNaN(weekOne.valueOf()) || weekOne.getUTCDay() !== 1) throw new Error("weekOneMonday must be a valid Monday date.");
   try {
     new Intl.DateTimeFormat("en-GB", { timeZone: payload.timezone || "Europe/London" });
   } catch {
@@ -115,7 +116,8 @@ export function validatePayload(payload) {
   payload.calendarName ||= "University of Liverpool Timetable";
   payload.events.forEach((event, index) => {
     const prefix = `Event ${index + 1}`;
-    if (!(event.day in DAY_OFFSETS)) throw new Error(`${prefix} has an invalid day.`);
+    if (!event || typeof event !== "object") throw new Error(`${prefix} must be an object.`);
+    if (!Object.hasOwn(DAY_OFFSETS, event.day)) throw new Error(`${prefix} has an invalid day.`);
     if (!isTime(event.start) || !isTime(event.end)) throw new Error(`${prefix} has an invalid start or end time.`);
     if (minutesFromTime(event.end) <= minutesFromTime(event.start)) throw new Error(`${prefix} must end after it starts.`);
     if (!event.moduleCode || !event.moduleTitle || !event.activity) throw new Error(`${prefix} is missing moduleCode, moduleTitle, or activity.`);

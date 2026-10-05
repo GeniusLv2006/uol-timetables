@@ -4,6 +4,7 @@ import { installContactReveal } from "./contact.js";
 import { buildOccurrences, findDiagnostics } from "./diagnostics.js";
 import { elements } from "./dom.js";
 import {
+  changeWeekOne,
   defaultPreferences,
   getEffectiveEvents,
   mergePreferences,
@@ -140,6 +141,7 @@ function renderValid(payload, compactOnSuccess = false) {
     state.preferences = defaultPreferences(payload);
     state.dataSignature = signature;
     state.inventory = inventory;
+    elements.profileSelect.value = "";
     syncControls(elements, payload, state.preferences, loadProfiles(), refreshOutput);
   } else if (JSON.stringify(inventory) !== JSON.stringify(state.inventory)) {
     state.preferences = reconcilePreferences(state.preferences, state.inventory, payload);
@@ -307,7 +309,12 @@ bindPreference(elements.calendarDescription, "calendarDescription");
 bindPreference(elements.calendarColor, "calendarColor");
 bindPreference(elements.locationFormat, "locationFormat", "change");
 bindPreference(elements.customReminder, "customReminderMinutes", "input", Number);
-bindPreference(elements.weekOne, "weekOneMonday", "change");
+elements.weekOne.addEventListener("change", () => {
+  if (!state.preferences) return;
+  state.preferences = changeWeekOne(state.preferences, elements.weekOne.value);
+  syncControls(elements, state.payload, state.preferences, loadProfiles(), refreshOutput);
+  refreshOutput();
+});
 bindPreference(elements.timezone, "timezone");
 bindPreference(elements.semesterStart, "semesterStart", "change");
 bindPreference(elements.semesterEnd, "semesterEnd", "change");
@@ -334,7 +341,7 @@ elements.selectAllTypes.addEventListener("click", () => {
 });
 elements.selectAllActivities.addEventListener("click", () => {
   if (!state.payload || !state.preferences) return;
-  const all = state.payload.events.map((event) => event.activity);
+  const all = [...new Set(state.payload.events.map((event) => event.activity))];
   state.preferences.includedActivities = state.preferences.includedActivities.length === all.length ? [] : all;
   syncControls(elements, state.payload, state.preferences, loadProfiles(), refreshOutput);
   refreshOutput();
@@ -365,7 +372,7 @@ elements.profileSelect.addEventListener("change", () => {
   if (!name || !state.payload) return;
   const saved = loadProfiles()[name];
   if (!saved) return;
-  state.preferences = mergePreferences(saved, state.payload);
+  state.preferences = mergePreferences(saved, state.payload, state.preferences);
   syncControls(elements, state.payload, state.preferences, loadProfiles(), refreshOutput);
   elements.profileSelect.value = name;
   refreshOutput();

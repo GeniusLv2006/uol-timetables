@@ -1,5 +1,9 @@
+// First teaching Monday per "academicYear:semester", from
+// https://www.liverpool.ac.uk/term-dates/. Semester 2 is omitted until its
+// week numbering around the Easter break is confirmed from a real timetable.
 export const KNOWN_WEEK_ONE_DATES = {
   "2026/27:1": "2026-09-28",
+  "2027/28:1": "2027-09-27",
 };
 
 export const DAY_OFFSETS = {

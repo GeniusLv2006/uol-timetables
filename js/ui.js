@@ -112,7 +112,12 @@ function renderDescriptionFields(elements, preferences, onChange) {
 
 function renderFilters(elements, payload, preferences, onChange) {
   const types = [...new Set(payload.events.map((event) => event.deliveryType || "Not Specified"))].sort();
-  elements.selectAllTypes.textContent = preferences.includedDeliveryTypes.length === types.length ? "Clear All" : "Select All";
+  const activities = new Set(payload.events.map((event) => event.activity));
+  const updateToggleLabels = () => {
+    elements.selectAllTypes.textContent = preferences.includedDeliveryTypes.length === types.length ? "Clear All" : "Select All";
+    elements.selectAllActivities.textContent = preferences.includedActivities.length === activities.size ? "Clear All" : "Select All";
+  };
+  updateToggleLabels();
   elements.deliveryFilters.replaceChildren(...types.map((type) => {
     const label = document.createElement("label");
     label.className = "filter-item";
@@ -123,6 +128,7 @@ function renderFilters(elements, payload, preferences, onChange) {
       preferences.includedDeliveryTypes = checkbox.checked
         ? [...new Set([...preferences.includedDeliveryTypes, type])]
         : preferences.includedDeliveryTypes.filter((item) => item !== type);
+      updateToggleLabels();
       onChange();
     });
     const text = document.createElement("span");
@@ -130,17 +136,22 @@ function renderFilters(elements, payload, preferences, onChange) {
     label.append(checkbox, text);
     return label;
   }));
-  elements.selectAllActivities.textContent = preferences.includedActivities.length === payload.events.length ? "Clear All" : "Select All";
   elements.activityFilters.replaceChildren(...payload.events.map((event) => {
     const label = document.createElement("label");
     label.className = "activity-filter-item";
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = preferences.includedActivities.includes(event.activity);
+    checkbox.dataset.activity = event.activity;
     checkbox.addEventListener("change", () => {
       preferences.includedActivities = checkbox.checked
         ? [...new Set([...preferences.includedActivities, event.activity])]
         : preferences.includedActivities.filter((item) => item !== event.activity);
+      // Rows sharing an activity code are one filter; keep their boxes in step.
+      elements.activityFilters.querySelectorAll("input").forEach((other) => {
+        if (other.dataset.activity === event.activity) other.checked = checkbox.checked;
+      });
+      updateToggleLabels();
       onChange();
     });
     const text = document.createElement("span");

@@ -4,7 +4,17 @@ import test from "node:test";
 
 import { buildOutputs } from "../js/calendar.js";
 import { buildOccurrences, findDiagnostics } from "../js/diagnostics.js";
-import { defaultPreferences, getEffectiveEvents, payloadInventory, reconcilePreferences } from "../js/preferences.js";
+import { bookmarkletCode } from "../js/bookmarklet.js";
+import { KNOWN_WEEK_ONE_DATES } from "../js/constants.js";
+import {
+  changeWeekOne,
+  defaultPreferences,
+  getEffectiveEvents,
+  mergePreferences,
+  payloadInventory,
+  reconcilePreferences,
+  validatePreferences,
+} from "../js/preferences.js";
 import { parseWeekRanges, validatePayload } from "../js/timetable.js";
 import { offsetMinutes } from "../js/timezone.js";
 
@@ -154,4 +164,73 @@ test("editing data keeps customisations and includes newly introduced values", (
   assert.ok(!reconciled.includedDeliveryTypes.includes("ONLINE SEMINAR"));
   const activities = getEffectiveEvents(edited, reconciled).map(({ event }) => event.activity);
   assert.ok(activities.includes("DEMO101/WORK/A/01"));
+});
+
+function sessionCount(payload, preferences) {
+  return getEffectiveEvents(payload, preferences).reduce((total, entry) => total + entry.weeks.length, 0);
+}
+
+test("applying a saved profile keeps the loaded semester's dates and week rules", () => {
+  const { payload, preferences: profile } = setup();
+  profile.titleFormat = "code-name";
+  profile.readingWeek = "2";
+  profile.excludeWeeks = "3";
+  const semesterTwo = validatePayload({ ...structuredClone(source), semester: 2, weekOneMonday: "2027-02-01", calendarName: "Semester 2" });
+  const current = defaultPreferences(semesterTwo);
+  const applied = mergePreferences(profile, semesterTwo, current);
+  assert.equal(applied.titleFormat, "code-name");
+  for (const field of ["weekOneMonday", "semesterStart", "semesterEnd", "readingWeek", "excludeWeeks", "calendarName"]) {
+    assert.equal(applied[field], current[field], field);
+  }
+  const ical = buildOutputs(semesterTwo, applied, getEffectiveEvents(semesterTwo, applied))[0].ical;
+  assert.match(ical, /DTSTART;TZID=Europe\/London:20270201T/);
+  assert.doesNotMatch(ical, /DTSTART;TZID=Europe\/London:2026/);
+  assert.equal(payload.weekOneMonday, "2026-09-28");
+});
+
+test("moving Week One shifts the semester bounds instead of dropping sessions", () => {
+  const { payload, preferences } = setup();
+  const moved = changeWeekOne(preferences, "2026-10-05");
+  assert.equal(moved.semesterStart, "2026-10-05");
+  assert.equal(moved.semesterEnd, "2026-10-28");
+  assert.equal(sessionCount(payload, moved), sessionCount(payload, preferences));
+  assert.equal(preferences.weekOneMonday, "2026-09-28");
+});
+
+test("data without a known Week One loads and asks for it in Schedule settings", () => {
+  const payload = validatePayload({ ...structuredClone(source), semester: 2, weekOneMonday: "" });
+  assert.equal(payload.weekOneMonday, "");
+  const preferences = defaultPreferences(payload);
+  assert.equal(preferences.semesterStart, "");
+  assert.throws(() => validatePreferences(preferences), /Set Week One Monday in Schedule settings/);
+  const chosen = changeWeekOne(preferences, "2027-02-01");
+  assert.doesNotThrow(() => validatePreferences(chosen));
+  assert.equal(sessionCount(payload, chosen), 11);
+  assert.throws(() => validatePayload({ ...structuredClone(source), weekOneMonday: "2026-09-29" }), /valid Monday/);
+});
+
+test("known Week One dates are inferred and embedded in the bookmarklet", () => {
+  const payload = validatePayload({ ...structuredClone(source), academicYear: "2027/28", weekOneMonday: "" });
+  assert.equal(payload.weekOneMonday, "2027-09-27");
+  assert.ok(bookmarkletCode.endsWith(`)(${JSON.stringify(KNOWN_WEEK_ONE_DATES)})`));
+  assert.doesNotThrow(() => new Function(bookmarkletCode.replace(/^javascript:/, "")));
+});
+
+test("payload validation rejects non-object events and inherited day names", () => {
+  for (const day of ["constructor", "toString", "__proto__"]) {
+    const payload = structuredClone(source);
+    payload.events[0].day = day;
+    assert.throws(() => validatePayload(payload), /Event 1 has an invalid day/);
+  }
+  const payload = structuredClone(source);
+  payload.events[0] = null;
+  assert.throws(() => validatePayload(payload), /Event 1 must be an object/);
+});
+
+test("activity filters treat repeated activity codes as one choice", () => {
+  const payload = structuredClone(source);
+  payload.events[1].activity = payload.events[0].activity;
+  const preferences = defaultPreferences(validatePayload(payload));
+  assert.deepEqual(preferences.includedActivities, [...new Set(preferences.includedActivities)]);
+  assert.equal(preferences.includedActivities.length, 3);
 });
