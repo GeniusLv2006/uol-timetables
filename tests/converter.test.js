@@ -48,3 +48,8 @@ test("Python converter refuses timezones it cannot describe", { skip: !hasPython
   const payload = { ...structuredClone(source), timezone: "Asia/Shanghai" };
   await assert.rejects(convertWithPython(payload), /only supports Europe\/London/);
 });
+
+test("Python converter explains a missing Week One", { skip: !hasPython && "python3 is not installed" }, async () => {
+  const payload = { ...structuredClone(source), weekOneMonday: "" };
+  await assert.rejects(convertWithPython(payload), /weekOneMonday is missing/);
+});

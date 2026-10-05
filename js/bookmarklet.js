@@ -1,6 +1,8 @@
-// Serialised with toString(), so the body cannot import modules: keep
-// knownStarts in sync with KNOWN_WEEK_ONE_DATES in constants.js.
-export async function extractTimetable() {
+import { KNOWN_WEEK_ONE_DATES } from "./constants.js";
+
+// Serialised with toString() into the bookmarklet, so the body cannot import
+// modules; known Week One dates are passed in as an argument instead.
+export async function extractTimetable(knownStarts = {}) {
   try {
     const table = document.querySelector("table");
     if (!table) throw new Error("No timetable table was found on this page.");
@@ -52,7 +54,6 @@ export async function extractTimetable() {
     const moduleUrl = events.find((event) => event.moduleUrl)?.moduleUrl || "";
     const yearMatch = moduleUrl.match(/_(\d{4})(\d{2})\.htm/i);
     const academicYear = yearMatch ? `${yearMatch[1]}/${yearMatch[2]}` : "";
-    const knownStarts = { "2026/27:1": "2026-09-28" };
     const payload = {
       schemaVersion: 1,
       source: location.href,
@@ -101,4 +102,4 @@ export async function extractTimetable() {
   }
 }
 
-export const bookmarkletCode = `javascript:(${extractTimetable.toString()})()`;
+export const bookmarkletCode = `javascript:(${extractTimetable.toString()})(${JSON.stringify(KNOWN_WEEK_ONE_DATES)})`;

@@ -198,6 +198,8 @@ def convert(payload: dict[str, Any]) -> str:
         raise ValueError(
             f"Unsupported timezone {timezone_name!r}; the Python converter only supports Europe/London."
         )
+    if not payload.get("weekOneMonday"):
+        raise ValueError("weekOneMonday is missing; add the semester's first teaching Monday (YYYY-MM-DD) to the JSON.")
     week_one_monday = date.fromisoformat(payload["weekOneMonday"])
     generated_at = payload.get("generatedAt")
     if generated_at:

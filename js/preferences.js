@@ -1,10 +1,21 @@
 import { DESCRIPTION_FIELDS } from "./constants.js";
 import { dateForWeek, parseWeekSelection, sourceWeeks } from "./timetable.js";
 
+// Preferences tied to one semester's data. Saved profiles never carry these
+// across, so applying a profile cannot move events to another semester's dates.
+const SEMESTER_FIELDS = ["weekOneMonday", "semesterStart", "semesterEnd", "includeWeeks", "excludeWeeks", "readingWeek", "calendarName", "calendarDescription"];
+
+export function isMondayDate(value) {
+  const date = new Date(`${value}T00:00:00Z`);
+  return /^\d{4}-\d{2}-\d{2}$/.test(value || "") && !Number.isNaN(date.valueOf()) && date.getUTCDay() === 1;
+}
+
 export function defaultPreferences(payload) {
-  const sourceOccurrences = payload.events.flatMap((event) =>
-    sourceWeeks(event).map((week) => dateForWeek(payload.weekOneMonday, week, event.day)),
-  ).sort((a, b) => a - b);
+  const sourceOccurrences = isMondayDate(payload.weekOneMonday)
+    ? payload.events.flatMap((event) =>
+      sourceWeeks(event).map((week) => dateForWeek(payload.weekOneMonday, week, event.day)),
+    ).sort((a, b) => a - b)
+    : [];
   const modules = [...new Set(payload.events.map((event) => event.moduleCode))].sort();
   const locations = [...new Set(payload.events.map((event) => event.location).filter(Boolean))].sort();
   return {
@@ -26,20 +37,21 @@ export function defaultPreferences(payload) {
     recurrenceMode: "recurring",
     weekOneMonday: payload.weekOneMonday,
     timezone: payload.timezone,
-    semesterStart: sourceOccurrences[0]?.toISOString().slice(0, 10) || payload.weekOneMonday,
+    semesterStart: sourceOccurrences[0]?.toISOString().slice(0, 10) || "",
     semesterEnd: sourceOccurrences.at(-1)?.toISOString().slice(0, 10) || "",
     includeWeeks: "",
     excludeWeeks: "",
     readingWeek: "",
     splitMode: "combined",
     includedDeliveryTypes: [...new Set(payload.events.map((event) => event.deliveryType || "Not Specified"))],
-    includedActivities: payload.events.map((event) => event.activity),
+    includedActivities: [...new Set(payload.events.map((event) => event.activity))],
   };
 }
 
-export function mergePreferences(saved, payload) {
+export function mergePreferences(saved, payload, current = defaultPreferences(payload)) {
   const base = defaultPreferences(payload);
   const merged = { ...base, ...saved };
+  for (const field of SEMESTER_FIELDS) merged[field] = current[field];
   merged.moduleAliases = { ...base.moduleAliases, ...(saved.moduleAliases || {}) };
   merged.locationAliases = { ...base.locationAliases, ...(saved.locationAliases || {}) };
   merged.descriptionEnabled = { ...base.descriptionEnabled, ...(saved.descriptionEnabled || {}) };
@@ -78,6 +90,19 @@ export function reconcilePreferences(preferences, previousInventory, payload) {
     includedDeliveryTypes: keepIncluded(base.includedDeliveryTypes, previousInventory.deliveryTypes, preferences.includedDeliveryTypes),
     includedActivities: keepIncluded(base.includedActivities, previousInventory.activities, preferences.includedActivities),
   };
+}
+
+// Moving Week One shifts the semester bounds by the same number of days, so the
+// same teaching weeks stay inside them.
+export function changeWeekOne(preferences, value) {
+  const previous = preferences.weekOneMonday;
+  const next = { ...preferences, weekOneMonday: value };
+  if (!isMondayDate(previous) || !isMondayDate(value)) return next;
+  const offset = new Date(`${value}T00:00:00Z`) - new Date(`${previous}T00:00:00Z`);
+  const shift = (date) => (date ? new Date(new Date(`${date}T00:00:00Z`).valueOf() + offset).toISOString().slice(0, 10) : date);
+  next.semesterStart = shift(preferences.semesterStart);
+  next.semesterEnd = shift(preferences.semesterEnd);
+  return next;
 }
 
 export function effectiveWeeks(event, preferences) {
@@ -157,8 +182,8 @@ export function reminderValue(preferences) {
 
 export function validatePreferences(preferences) {
   new Intl.DateTimeFormat("en-GB", { timeZone: preferences.timezone });
-  const weekOne = new Date(`${preferences.weekOneMonday}T00:00:00Z`);
-  if (Number.isNaN(weekOne.valueOf()) || weekOne.getUTCDay() !== 1) throw new Error("Week One Monday must be a valid Monday date.");
+  if (!preferences.weekOneMonday) throw new Error("Set Week One Monday in Schedule settings to place events on the calendar.");
+  if (!isMondayDate(preferences.weekOneMonday)) throw new Error("Week One Monday must be a valid Monday date.");
   if (!preferences.calendarName.trim()) throw new Error("Calendar Name cannot be empty.");
   if (preferences.titleFormat === "custom" && !preferences.customTitle.trim()) throw new Error("Custom Title Template cannot be empty.");
   if (preferences.semesterStart && preferences.semesterEnd && preferences.semesterStart > preferences.semesterEnd) throw new Error("Semester Start must be before Semester End.");
