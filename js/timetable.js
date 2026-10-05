@@ -96,8 +96,9 @@ function isTime(value) {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 }
 
-export function validatePayload(payload) {
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) throw new Error("The JSON root must be an object.");
+export function validatePayload(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("The JSON root must be an object.");
+  const payload = { ...input };
   if (!Array.isArray(payload.events) || !payload.events.length) throw new Error("The JSON must contain a non-empty events array.");
   // Without a known Week One the data still loads; the Schedule settings ask for it.
   if (!payload.weekOneMonday) payload.weekOneMonday = KNOWN_WEEK_ONE_DATES[`${payload.academicYear}:${payload.semester}`] || "";

@@ -310,13 +310,13 @@
 
                 <div class="setting-block">
                   <div class="setting-heading">
-                    <div><label>Module Aliases</label><p>Use shorter names without changing module codes.</p></div>
+                    <div><span class="setting-label">Module Aliases</span><p>Use shorter names without changing module codes.</p></div>
                   </div>
                   <div class="mapping-list" id="module-aliases"></div>
                 </div>
 
                 <div class="setting-block">
-                  <label>Calendar Appearance</label>
+                  <span class="setting-label">Calendar Appearance</span>
                   <div class="form-grid two-columns">
                     <div><label for="calendar-name">Calendar Name</label><input id="calendar-name" type="text" /></div>
                     <div><label for="file-name">Export File Name</label><input id="file-name" type="text" /></div>
@@ -334,7 +334,7 @@
 
                 <div class="setting-block">
                   <div class="setting-heading">
-                    <div><label>Description Fields</label><p>Enable fields and use the arrows to change their order.</p></div>
+                    <div><span class="setting-label">Description Fields</span><p>Enable fields and use the arrows to change their order.</p></div>
                   </div>
                   <div class="field-order" id="description-fields"></div>
                 </div>
@@ -368,7 +368,7 @@
 
                 <div class="setting-block">
                   <div class="setting-heading">
-                    <div><label>Location Aliases</label><p>Shorten long campus names before exporting.</p></div>
+                    <div><span class="setting-label">Location Aliases</span><p>Shorten long campus names before exporting.</p></div>
                   </div>
                   <div class="mapping-list location-mappings" id="location-aliases"></div>
                 </div>
@@ -381,7 +381,7 @@
                 </div>
 
                 <div class="setting-block">
-                  <label>Academic Frame</label>
+                  <span class="setting-label">Academic Frame</span>
                   <div class="form-grid two-columns">
                     <div><label for="week-one">Week One Monday</label><input id="week-one" type="date" /></div>
                     <div><label for="timezone">Timezone</label><input id="timezone" type="text" value="Europe/London" /></div>
@@ -391,7 +391,7 @@
                 </div>
 
                 <div class="setting-block">
-                  <label>Teaching Week Controls</label>
+                  <span class="setting-label">Teaching Week Controls</span>
                   <div class="form-grid three-columns">
                     <div><label for="include-weeks">Include Weeks</label><input id="include-weeks" type="text" placeholder="1-12" /></div>
                     <div><label for="exclude-weeks">Exclude Weeks</label><input id="exclude-weeks" type="text" placeholder="9, 13" /></div>
@@ -401,8 +401,8 @@
                 </div>
 
                 <div class="setting-block">
-                  <label>Recurrence Mode</label>
-                  <div class="choice-cards">
+                  <span class="setting-label" id="recurrence-mode-label">Recurrence Mode</span>
+                  <div class="choice-cards" role="radiogroup" aria-labelledby="recurrence-mode-label">
                     <label><input type="radio" name="recurrence-mode" value="recurring" checked /><span><strong>Recurring events</strong><small>Compact files with weekly rules</small></span></label>
                     <label><input type="radio" name="recurrence-mode" value="individual" /><span><strong>Individual events</strong><small>Every session can be edited separately</small></span></label>
                   </div>
@@ -416,8 +416,8 @@
                 </div>
 
                 <div class="setting-block">
-                  <label>Calendar Splitting</label>
-                  <div class="choice-cards three-up">
+                  <span class="setting-label" id="split-mode-label">Calendar Splitting</span>
+                  <div class="choice-cards three-up" role="radiogroup" aria-labelledby="split-mode-label">
                     <label><input type="radio" name="split-mode" value="combined" checked /><span><strong>Combined</strong><small>One complete calendar</small></span></label>
                     <label><input type="radio" name="split-mode" value="module" /><span><strong>By module</strong><small>One file per course</small></span></label>
                     <label><input type="radio" name="split-mode" value="type" /><span><strong>By activity type</strong><small>Lectures and labs apart</small></span></label>
@@ -426,7 +426,7 @@
 
                 <div class="setting-block">
                   <div class="setting-heading">
-                    <div><label>Activity Type Filters</label><p>Disable an entire category of teaching.</p></div>
+                    <div><span class="setting-label">Activity Type Filters</span><p>Disable an entire category of teaching.</p></div>
                     <button class="inline-action" id="select-all-types" type="button">Select All</button>
                   </div>
                   <div class="filter-grid" id="delivery-filters"></div>
@@ -434,7 +434,7 @@
 
                 <div class="setting-block">
                   <div class="setting-heading">
-                    <div><label>Individual Activity Filters</label><p>Fine-tune individual classes without editing JSON.</p></div>
+                    <div><span class="setting-label">Individual Activity Filters</span><p>Fine-tune individual classes without editing JSON.</p></div>
                     <button class="inline-action" id="select-all-activities" type="button">Select All</button>
                   </div>
                   <div class="activity-filter-list" id="activity-filters"></div>
