@@ -7,6 +7,7 @@ import { buildOccurrences, findDiagnostics } from "../js/diagnostics.js";
 import { bookmarkletCode } from "../js/bookmarklet.js";
 import { KNOWN_WEEK_ONE_DATES } from "../js/constants.js";
 import {
+  adoptPayload,
   changeWeekOne,
   defaultPreferences,
   getEffectiveEvents,
@@ -242,4 +243,48 @@ test("payload validation returns a normalised copy without changing its input", 
   assert.deepEqual(input, snapshot);
   assert.equal(payload.timezone, "Europe/London");
   assert.equal(payload.weekOneMonday, "2026-09-28");
+});
+
+test("editing data in the same semester keeps customisations and follows default bounds", () => {
+  const { payload, preferences } = setup();
+  preferences.titleFormat = "code-name";
+  preferences.moduleAliases.DEMO101 = "Intro";
+  preferences.readingWeek = "2";
+  const edited = validatePayload(structuredClone(source));
+  edited.events[0].start = "09:00";
+  edited.events[0].teachingWeeks = "S1 01-S1 06";
+  const adopted = adoptPayload(preferences, payload, edited);
+  assert.equal(adopted.titleFormat, "code-name");
+  assert.equal(adopted.moduleAliases.DEMO101, "Intro");
+  assert.equal(adopted.readingWeek, "2");
+  assert.equal(adopted.semesterEnd, "2026-11-02");
+  // 14 source sessions once week 6 is reached, minus the four in reading week 2.
+  assert.equal(sessionCount(edited, adopted), 10);
+
+  preferences.semesterEnd = "2026-10-10";
+  assert.equal(adoptPayload(preferences, payload, edited).semesterEnd, "2026-10-10");
+});
+
+test("loading another semester keeps style choices but takes its own semester fields", () => {
+  const { payload, preferences } = setup();
+  preferences.titleFormat = "code-name";
+  preferences.readingWeek = "2";
+  const next = validatePayload({ ...structuredClone(source), academicYear: "2027/28", weekOneMonday: "", calendarName: "Next Year" });
+  const adopted = adoptPayload(preferences, payload, next);
+  assert.equal(adopted.titleFormat, "code-name");
+  assert.equal(adopted.weekOneMonday, "2027-09-27");
+  assert.equal(adopted.readingWeek, "");
+  assert.equal(adopted.calendarName, "Next Year");
+  assert.equal(adopted.semesterStart, "2027-09-27");
+});
+
+test("exports use the canonical timezone name and the tool's own UID domain", () => {
+  const { payload, preferences } = setup();
+  preferences.timezone = "europe/london";
+  const ical = buildOutputs(payload, preferences, getEffectiveEvents(payload, preferences))[0].ical;
+  assert.doesNotMatch(ical, /europe\/london/);
+  assert.match(ical, /X-WR-TIMEZONE:Europe\/London\r\n/);
+  assert.match(ical, /DTSTART;TZID=Europe\/London:/);
+  assert.match(ical, /UID:[0-9a-f]{8}@timetables\.xjtlu\.uk\r\n/);
+  assert.doesNotMatch(ical, /@timetables\.liverpool\.ac\.uk/);
 });

@@ -4,25 +4,23 @@ import { installContactReveal } from "./contact.js";
 import { buildOccurrences, findDiagnostics } from "./diagnostics.js";
 import { elements } from "./dom.js";
 import {
+  adoptPayload,
   changeWeekOne,
   defaultPreferences,
   getEffectiveEvents,
   mergePreferences,
-  payloadInventory,
-  reconcilePreferences,
   validatePreferences,
 } from "./preferences.js";
 import { loadProfiles, saveProfiles } from "./profiles.js";
 import { installPrivacyControls } from "./privacy.js";
 import { validatePayload } from "./timetable.js";
-import { renderProfiles, renderSummary, syncControls } from "./ui.js";
+import { renderProfiles, renderSummary, renderSummaryUnavailable, syncControls } from "./ui.js";
 
 const state = {
   payload: null,
   preferences: null,
   outputs: [],
-  dataSignature: "",
-  inventory: null,
+  preferencesPayload: null,
   pendingExports: [],
   compactAfterPaste: false,
   inputTimer: null,
@@ -117,6 +115,7 @@ function refreshOutput() {
     elements.validationMessage.hidden = true;
   } catch (error) {
     state.outputs = [];
+    renderSummaryUnavailable(elements, state.preferences, error.message);
     elements.liveStatus.textContent = "Settings Need Attention";
     elements.liveStatus.className = "live-status invalid";
     elements.validationMessage.hidden = false;
@@ -134,20 +133,15 @@ function setWorkbenchCompact(compact) {
 }
 
 function renderValid(payload, compactOnSuccess = false) {
-  const signature = JSON.stringify(payload.events.map((event) => [event.activity, event.day, event.start, event.teachingWeeks]));
-  const inventory = payloadInventory(payload);
   state.payload = payload;
-  if (signature !== state.dataSignature || !state.preferences) {
+  if (!state.preferences || !state.preferencesPayload) {
     state.preferences = defaultPreferences(payload);
-    state.dataSignature = signature;
-    state.inventory = inventory;
     elements.profileSelect.value = "";
-    syncControls(elements, payload, state.preferences, loadProfiles(), refreshOutput);
-  } else if (JSON.stringify(inventory) !== JSON.stringify(state.inventory)) {
-    state.preferences = reconcilePreferences(state.preferences, state.inventory, payload);
-    state.inventory = inventory;
-    syncControls(elements, payload, state.preferences, loadProfiles(), refreshOutput);
+  } else if (payload !== state.preferencesPayload) {
+    state.preferences = adoptPayload(state.preferences, state.preferencesPayload, payload);
   }
+  state.preferencesPayload = payload;
+  syncControls(elements, payload, state.preferences, loadProfiles(), refreshOutput);
   elements.summaryEmpty.hidden = true;
   elements.summary.hidden = false;
   elements.customizer.hidden = false;
@@ -278,14 +272,35 @@ elements.reviewJson.addEventListener("click", () => {
   processJson({ compactOnSuccess: true });
 });
 
-document.querySelectorAll(".config-tab").forEach((tab) => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".config-tab").forEach((item) => item.classList.toggle("active", item === tab));
-    document.querySelectorAll(".config-panel").forEach((panel) => {
-      const active = panel.id === tab.dataset.panel;
-      panel.classList.toggle("active", active);
-      panel.hidden = !active;
-    });
+const configTabs = [...document.querySelectorAll(".config-tab")];
+
+function selectConfigTab(tab, focus = false) {
+  for (const item of configTabs) {
+    const active = item === tab;
+    item.classList.toggle("active", active);
+    item.setAttribute("aria-selected", String(active));
+    item.tabIndex = active ? 0 : -1;
+    const panel = document.getElementById(item.getAttribute("aria-controls"));
+    panel.classList.toggle("active", active);
+    panel.hidden = !active;
+  }
+  if (focus) tab.focus();
+}
+
+configTabs.forEach((tab, index) => {
+  tab.addEventListener("click", () => selectConfigTab(tab));
+  tab.addEventListener("keydown", (event) => {
+    const targets = {
+      ArrowDown: configTabs[(index + 1) % configTabs.length],
+      ArrowRight: configTabs[(index + 1) % configTabs.length],
+      ArrowUp: configTabs[(index - 1 + configTabs.length) % configTabs.length],
+      ArrowLeft: configTabs[(index - 1 + configTabs.length) % configTabs.length],
+      Home: configTabs[0],
+      End: configTabs.at(-1),
+    };
+    if (!targets[event.key]) return;
+    event.preventDefault();
+    selectConfigTab(targets[event.key], true);
   });
 });
 

@@ -173,7 +173,7 @@ def event_components(
             ]
         )
         lines = ["BEGIN:VEVENT"]
-        add_line(lines, "UID", f"{stable_hash(uid_source)}@timetables.liverpool.ac.uk")
+        add_line(lines, "UID", f"{stable_hash(uid_source)}@timetables.xjtlu.uk")
         add_line(lines, "DTSTAMP", dtstamp)
         add_line(lines, f"DTSTART;TZID={timezone_name}", local_stamp(event_day, event["start"]))
         add_line(lines, f"DTEND;TZID={timezone_name}", local_stamp(event_day, event["end"]))

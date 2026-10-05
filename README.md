@@ -39,7 +39,10 @@ Applying a profile carries style choices such as titles, aliases, reminders,
 filters, and splitting, but keeps the loaded semester's Week One, semester bounds,
 included and excluded weeks, reading week, calendar name, and description.
 
-Changing Week One moves the semester bounds with it. If the loaded data has no
+Editing the JSON keeps your settings: within the same semester everything is kept
+and default semester bounds follow the new teaching weeks, while data for a
+different academic year, semester, or Week One keeps style choices but takes its
+own semester settings. Changing Week One moves the semester bounds with it. If the loaded data has no
 Week One and none is known for its academic year and semester, the data still
 loads and the Schedule settings ask for it.
 

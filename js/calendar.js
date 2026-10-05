@@ -1,5 +1,5 @@
 import { contiguousRanges, dateForWeek, localStamp } from "./timetable.js";
-import { timezoneComponent } from "./timezone.js";
+import { canonicalTimezone, timezoneComponent } from "./timezone.js";
 import { descriptionForEvent, formatLocation, reminderValue, titleForEvent } from "./preferences.js";
 
 function escapeIcal(value) {
@@ -44,7 +44,7 @@ function stableHash(value) {
 }
 
 function calendarHeader(name, preferences, yearRange) {
-  const timezone = preferences.timezone;
+  const timezone = canonicalTimezone(preferences.timezone);
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -63,12 +63,13 @@ function calendarHeader(name, preferences, yearRange) {
 function addEventComponent(lines, payload, preferences, event, startWeek, endWeek, dtstamp) {
   const date = dateForWeek(preferences.weekOneMonday, startWeek, event.day);
   const count = endWeek - startWeek + 1;
+  const timezone = canonicalTimezone(preferences.timezone);
   const uidInput = [event.activity, event.day, event.start, startWeek, endWeek, preferences.weekOneMonday].join("|");
   lines.push("BEGIN:VEVENT");
-  addLine(lines, "UID", `${stableHash(uidInput)}@timetables.liverpool.ac.uk`);
+  addLine(lines, "UID", `${stableHash(uidInput)}@timetables.xjtlu.uk`);
   addLine(lines, "DTSTAMP", dtstamp);
-  addLine(lines, `DTSTART;TZID=${preferences.timezone}`, localStamp(date, event.start));
-  addLine(lines, `DTEND;TZID=${preferences.timezone}`, localStamp(date, event.end));
+  addLine(lines, `DTSTART;TZID=${timezone}`, localStamp(date, event.start));
+  addLine(lines, `DTEND;TZID=${timezone}`, localStamp(date, event.end));
   if (preferences.recurrenceMode === "recurring" && count > 1) addLine(lines, "RRULE", `FREQ=WEEKLY;COUNT=${count}`);
   addLine(lines, "SUMMARY", escapeIcal(titleForEvent(event, preferences)));
   addLine(lines, "LOCATION", escapeIcal(formatLocation(event, preferences)));

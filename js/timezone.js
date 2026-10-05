@@ -18,6 +18,11 @@ function zoneName(timezone, instant, style) {
   return formatter(timezone, style).formatToParts(new Date(instant)).find((part) => part.type === "timeZoneName")?.value || "";
 }
 
+// Normalises user input such as "europe/london" to the IANA name ("Europe/London").
+export function canonicalTimezone(timezone) {
+  return new Intl.DateTimeFormat("en-US", { timeZone: timezone }).resolvedOptions().timeZone;
+}
+
 export function offsetMinutes(timezone, instant) {
   const match = zoneName(timezone, instant, "longOffset").match(/^(?:GMT|UTC)(?:([+-])(\d{1,2})(?::?(\d{2}))?)?$/);
   if (!match?.[1]) return 0;
