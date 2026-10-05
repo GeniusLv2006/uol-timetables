@@ -7,7 +7,13 @@ __pycache__/
 *.pyc
 dist/
 node_modules/
+
+# Local AI / agent workspace files
 AGENTS.md
+CLAUDE.md
+.claude/
+.codex/
+.agents/
 
 # Personal timetable exports must never be committed or deployed.
 timetable.semester*.json
