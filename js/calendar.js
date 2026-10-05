@@ -1,4 +1,5 @@
 import { contiguousRanges, dateForWeek, localStamp } from "./timetable.js";
+import { timezoneComponent } from "./timezone.js";
 import { descriptionForEvent, formatLocation, reminderValue, titleForEvent } from "./preferences.js";
 
 function escapeIcal(value) {
@@ -42,7 +43,7 @@ function stableHash(value) {
   return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
-function calendarHeader(name, preferences) {
+function calendarHeader(name, preferences, yearRange) {
   const timezone = preferences.timezone;
   const lines = [
     "BEGIN:VCALENDAR",
@@ -55,26 +56,7 @@ function calendarHeader(name, preferences) {
   addLine(lines, "X-WR-CALDESC", escapeIcal(preferences.calendarDescription));
   addLine(lines, "X-WR-TIMEZONE", timezone);
   addLine(lines, "X-APPLE-CALENDAR-COLOR", preferences.calendarColor.toUpperCase());
-  lines.push(
-    "BEGIN:VTIMEZONE",
-    `TZID:${timezone}`,
-    `X-LIC-LOCATION:${timezone}`,
-    "BEGIN:DAYLIGHT",
-    "TZOFFSETFROM:+0000",
-    "TZOFFSETTO:+0100",
-    "TZNAME:BST",
-    "DTSTART:19700329T010000",
-    "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU",
-    "END:DAYLIGHT",
-    "BEGIN:STANDARD",
-    "TZOFFSETFROM:+0100",
-    "TZOFFSETTO:+0000",
-    "TZNAME:GMT",
-    "DTSTART:19701025T020000",
-    "RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU",
-    "END:STANDARD",
-    "END:VTIMEZONE",
-  );
+  lines.push(...timezoneComponent(timezone, yearRange.first, yearRange.last));
   return lines;
 }
 
@@ -110,7 +92,8 @@ function createCalendar(payload, preferences, entries, name) {
   const generated = payload.generatedAt ? new Date(payload.generatedAt) : new Date();
   const validGenerated = Number.isNaN(generated.valueOf()) ? new Date() : generated;
   const dtstamp = validGenerated.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
-  const lines = calendarHeader(name, preferences);
+  const years = entries.flatMap(({ event, weeks }) => weeks.map((week) => dateForWeek(preferences.weekOneMonday, week, event.day).getUTCFullYear()));
+  const lines = calendarHeader(name, preferences, { first: Math.min(...years), last: Math.max(...years) });
   for (const { event, weeks } of entries) {
     if (preferences.recurrenceMode === "individual") {
       for (const week of weeks) addEventComponent(lines, payload, preferences, event, week, week, dtstamp);
