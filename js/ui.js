@@ -91,11 +91,13 @@ function renderDescriptionFields(elements, preferences, onChange) {
     up.type = "button";
     up.textContent = "↑";
     up.title = "Move up";
+    up.setAttribute("aria-label", `Move ${DESCRIPTION_FIELDS[key].label} up`);
     up.disabled = index === 0;
     const down = document.createElement("button");
     down.type = "button";
     down.textContent = "↓";
     down.title = "Move down";
+    down.setAttribute("aria-label", `Move ${DESCRIPTION_FIELDS[key].label} down`);
     down.disabled = index === preferences.descriptionOrder.length - 1;
     const move = (offset) => {
       const next = index + offset;

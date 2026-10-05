@@ -234,3 +234,12 @@ test("activity filters treat repeated activity codes as one choice", () => {
   assert.deepEqual(preferences.includedActivities, [...new Set(preferences.includedActivities)]);
   assert.equal(preferences.includedActivities.length, 3);
 });
+
+test("payload validation returns a normalised copy without changing its input", () => {
+  const input = { ...structuredClone(source), timezone: "", calendarName: "", weekOneMonday: "" };
+  const snapshot = structuredClone(input);
+  const payload = validatePayload(input);
+  assert.deepEqual(input, snapshot);
+  assert.equal(payload.timezone, "Europe/London");
+  assert.equal(payload.weekOneMonday, "2026-09-28");
+});

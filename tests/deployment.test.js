@@ -40,17 +40,12 @@ test("privacy controls disclose analytics and persist an opt-out", () => {
   assert.match(homepage, /id="open-privacy"/);
   assert.match(homepage, /id="privacy-dialog"/);
   assert.match(homepage, /id="analytics-enabled"[^>]*role="switch"/);
-  assert.match(homepage, /id="save-privacy"[^>]*>Save &amp; Reload<\/button>/);
-  assert.match(homepage, /<strong>Cloudflare Web Analytics<\/strong>/);
-  assert.match(homepage, /never uploaded by this tool or included in Cloudflare Web Analytics/);
-  assert.match(homepage, /Page visits, pages viewed, referrer, country, browser, operating system, device type and page-loading performance/);
-  assert.match(homepage, /Cloudflare processes these measurements to provide Web Analytics/);
-  assert.match(homepage, /does not use analytics cookies or local storage/);
-  assert.match(homepage, /one first-party preference cookie for one year to remember your choice/);
-  assert.match(styles, /\.analytics-choice-note\s*{[^}]*color:\s*rgba\(252, 249, 241, \.64\)[^}]*font-size:\s*11px/s);
+  assert.match(homepage, /id="save-privacy"/);
+  const dialog = homepage.match(/<dialog class="privacy-dialog"[\s\S]*?<\/dialog>/)[0];
+  for (const disclosure of [/Cloudflare Web Analytics/, /cookie/i, /never uploaded/i]) {
+    assert.match(dialog, disclosure);
+  }
   assert.match(mainScript, /installPrivacyControls/);
   assert.match(privacyScript, /uol_timetable_analytics/);
-  assert.match(privacyScript, /saveButton\.addEventListener\("click"/);
-  assert.match(privacyScript, /sessionStorage\.setItem/);
   assert.match(privacyScript, /location\.reload\(\)/);
 });

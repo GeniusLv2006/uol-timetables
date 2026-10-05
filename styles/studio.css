@@ -112,7 +112,9 @@
 
 .setting-block { padding: 27px 0; border-top: 1px solid var(--line); }
 .setting-block > label,
+.setting-block > .setting-label,
 .setting-heading label,
+.setting-heading .setting-label,
 .form-grid > div > label,
 .split-settings > div > label,
 #custom-title-group > label,
@@ -126,7 +128,8 @@
 }
 .setting-block > select { width: min(100%, 480px); }
 .setting-heading { display: flex; justify-content: space-between; gap: 30px; align-items: start; margin-bottom: 17px; }
-.setting-heading label { margin-bottom: 7px; }
+.setting-heading label,
+.setting-heading .setting-label { margin-bottom: 7px; }
 .setting-heading p { margin: 0; color: #747b77; font-size: 12px; line-height: 1.5; }
 .field-note { margin: 9px 0 0; color: #747b77; font-size: 11px; line-height: 1.55; }
 
