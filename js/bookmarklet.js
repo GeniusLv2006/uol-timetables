@@ -1,3 +1,5 @@
+// Serialised with toString(), so the body cannot import modules: keep
+// knownStarts in sync with KNOWN_WEEK_ONE_DATES in constants.js.
 export async function extractTimetable() {
   try {
     const table = document.querySelector("table");
