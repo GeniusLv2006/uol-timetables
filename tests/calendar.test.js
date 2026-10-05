@@ -4,10 +4,19 @@ import test from "node:test";
 
 import { buildOutputs } from "../js/calendar.js";
 import { buildOccurrences, findDiagnostics } from "../js/diagnostics.js";
-import { defaultPreferences, getEffectiveEvents } from "../js/preferences.js";
+import { defaultPreferences, getEffectiveEvents, payloadInventory, reconcilePreferences } from "../js/preferences.js";
 import { parseWeekRanges, validatePayload } from "../js/timetable.js";
+import { offsetMinutes } from "../js/timezone.js";
 
 const source = JSON.parse(await readFile(new URL("../timetable.sample.json", import.meta.url), "utf8"));
+
+function unfold(ical) {
+  return ical.replace(/\r\n /g, "");
+}
+
+function timezoneBlock(ical) {
+  return ical.match(/BEGIN:VTIMEZONE\r\n[\s\S]*?END:VTIMEZONE/)[0];
+}
 
 function setup() {
   const payload = validatePayload(structuredClone(source));
@@ -81,4 +90,68 @@ test("diagnostics detect overlapping activities", () => {
   const duplicate = { event: { ...entries[0].event, activity: "TEST/OVERLAP", moduleCode: "TEST999" }, weeks: entries[0].weeks };
   const issues = findDiagnostics([...entries, duplicate], preferences);
   assert.ok(issues.some((issue) => issue.startsWith("Overlap:")));
+});
+
+test("London export encodes the autumn clock change for recurrences that cross it", () => {
+  const payload = validatePayload(structuredClone(source));
+  payload.events[0].teachingWeeks = "S1 01-S1 08";
+  const preferences = defaultPreferences(payload);
+  const ical = buildOutputs(payload, preferences, getEffectiveEvents(payload, preferences))[0].ical;
+  const zone = timezoneBlock(ical);
+  assert.match(zone, /BEGIN:STANDARD\r\nTZOFFSETFROM:\+0100\r\nTZOFFSETTO:\+0000\r\nTZNAME:GMT\r\nDTSTART:20261025T020000\r\nEND:STANDARD/);
+  assert.match(zone, /BEGIN:DAYLIGHT\r\nTZOFFSETFROM:\+0000\r\nTZOFFSETTO:\+0100\r\nTZNAME:BST\r\nDTSTART:20260329T010000\r\nEND:DAYLIGHT/);
+  assert.match(ical, /DTSTART;TZID=Europe\/London:20260928T\d{6}\r\nDTEND;TZID=Europe\/London:20260928T\d{6}\r\nRRULE:FREQ=WEEKLY;COUNT=8/);
+  assert.equal(offsetMinutes("Europe/London", Date.UTC(2026, 9, 25, 0, 59)), 60);
+  assert.equal(offsetMinutes("Europe/London", Date.UTC(2026, 9, 25, 1, 0)), 0);
+});
+
+test("non-London timezones get their own rules instead of UK daylight saving", () => {
+  const { payload, preferences } = setup();
+  preferences.timezone = "Asia/Shanghai";
+  const zone = timezoneBlock(buildOutputs(payload, preferences, getEffectiveEvents(payload, preferences))[0].ical);
+  assert.match(zone, /TZID:Asia\/Shanghai/);
+  assert.match(zone, /TZOFFSETTO:\+0800/);
+  assert.doesNotMatch(zone, /BST|DAYLIGHT|\+0100/);
+
+  preferences.timezone = "America/New_York";
+  const newYork = timezoneBlock(buildOutputs(payload, preferences, getEffectiveEvents(payload, preferences))[0].ical);
+  assert.match(newYork, /TZOFFSETFROM:-0400\r\nTZOFFSETTO:-0500\r\nTZNAME:[^\r]+\r\nDTSTART:20261101T020000/);
+});
+
+test("folding keeps multi-byte characters intact and within 75 octets", () => {
+  const { payload, preferences } = setup();
+  const title = "高级算法与数据结构 · Ångström lab 🧪 ".repeat(4).trim();
+  payload.events[0].moduleTitle = title;
+  preferences.titleFormat = "name";
+  const ical = buildOutputs(payload, preferences, getEffectiveEvents(payload, preferences))[0].ical;
+  for (const line of ical.split("\r\n")) {
+    assert.ok(Buffer.byteLength(line, "utf8") <= 75, `line exceeds 75 octets: ${line}`);
+    assert.doesNotMatch(line, /\uFFFD/);
+  }
+  assert.ok(ical.split("\r\n").some((line) => line.startsWith(" ")), "expected the long title to be folded");
+  assert.ok(unfold(ical).includes(`SUMMARY:${title}\r\n`));
+});
+
+test("text values escape iCalendar special characters", () => {
+  const { payload, preferences } = setup();
+  payload.events[0].location = "Hall, Room 1; Floor \\2\nAnnex";
+  const ical = unfold(buildOutputs(payload, preferences, getEffectiveEvents(payload, preferences))[0].ical);
+  assert.ok(ical.includes("LOCATION:Hall\\, Room 1\\; Floor \\\\2\\nAnnex\r\n"));
+});
+
+test("editing data keeps customisations and includes newly introduced values", () => {
+  const { payload, preferences } = setup();
+  preferences.moduleAliases.DEMO101 = "Intro";
+  preferences.includedDeliveryTypes = preferences.includedDeliveryTypes.filter((type) => type !== "ONLINE SEMINAR");
+  const edited = structuredClone(payload);
+  edited.events[1].deliveryType = "ON CAMPUS TUTORIAL";
+  edited.events[2].location = "New Teaching Hub";
+  const reconciled = reconcilePreferences(preferences, payloadInventory(payload), edited);
+  assert.equal(reconciled.moduleAliases.DEMO101, "Intro");
+  assert.ok("New Teaching Hub" in reconciled.locationAliases);
+  assert.ok(!("Sample Teaching Centre" in reconciled.locationAliases));
+  assert.ok(reconciled.includedDeliveryTypes.includes("ON CAMPUS TUTORIAL"));
+  assert.ok(!reconciled.includedDeliveryTypes.includes("ONLINE SEMINAR"));
+  const activities = getEffectiveEvents(edited, reconciled).map(({ event }) => event.activity);
+  assert.ok(activities.includes("DEMO101/WORK/A/01"));
 });
