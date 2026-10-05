@@ -7,6 +7,8 @@ import {
   defaultPreferences,
   getEffectiveEvents,
   mergePreferences,
+  payloadInventory,
+  reconcilePreferences,
   validatePreferences,
 } from "./preferences.js";
 import { loadProfiles, saveProfiles } from "./profiles.js";
@@ -19,6 +21,7 @@ const state = {
   preferences: null,
   outputs: [],
   dataSignature: "",
+  inventory: null,
   pendingExports: [],
   compactAfterPaste: false,
   inputTimer: null,
@@ -126,10 +129,16 @@ function setWorkbenchCompact(compact) {
 
 function renderValid(payload, compactOnSuccess = false) {
   const signature = JSON.stringify(payload.events.map((event) => [event.activity, event.day, event.start, event.teachingWeeks]));
+  const inventory = payloadInventory(payload);
   state.payload = payload;
   if (signature !== state.dataSignature || !state.preferences) {
     state.preferences = defaultPreferences(payload);
     state.dataSignature = signature;
+    state.inventory = inventory;
+    syncControls(elements, payload, state.preferences, loadProfiles(), refreshOutput);
+  } else if (JSON.stringify(inventory) !== JSON.stringify(state.inventory)) {
+    state.preferences = reconcilePreferences(state.preferences, state.inventory, payload);
+    state.inventory = inventory;
     syncControls(elements, payload, state.preferences, loadProfiles(), refreshOutput);
   }
   elements.summaryEmpty.hidden = true;

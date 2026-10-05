@@ -55,6 +55,31 @@ export function mergePreferences(saved, payload) {
   return merged;
 }
 
+export function payloadInventory(payload) {
+  const unique = (values) => [...new Set(values)].sort();
+  return {
+    modules: unique(payload.events.map((event) => event.moduleCode)),
+    locations: unique(payload.events.map((event) => event.location).filter(Boolean)),
+    deliveryTypes: unique(payload.events.map((event) => event.deliveryType || "Not Specified")),
+    activities: unique(payload.events.map((event) => event.activity)),
+  };
+}
+
+// Carries customisations over to edited data: existing choices are kept,
+// and modules, locations, types, or activities that are new get defaults.
+export function reconcilePreferences(preferences, previousInventory, payload) {
+  const base = defaultPreferences(payload);
+  const keepAliases = (defaults, saved) => Object.fromEntries(Object.keys(defaults).map((key) => [key, saved[key] || ""]));
+  const keepIncluded = (values, previous, included) => values.filter((value) => !previous.includes(value) || included.includes(value));
+  return {
+    ...preferences,
+    moduleAliases: keepAliases(base.moduleAliases, preferences.moduleAliases),
+    locationAliases: keepAliases(base.locationAliases, preferences.locationAliases),
+    includedDeliveryTypes: keepIncluded(base.includedDeliveryTypes, previousInventory.deliveryTypes, preferences.includedDeliveryTypes),
+    includedActivities: keepIncluded(base.includedActivities, previousInventory.activities, preferences.includedActivities),
+  };
+}
+
 export function effectiveWeeks(event, preferences) {
   const included = parseWeekSelection(preferences.includeWeeks);
   const excluded = parseWeekSelection(preferences.excludeWeeks) || new Set();
