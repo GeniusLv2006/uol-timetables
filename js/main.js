@@ -7,6 +7,8 @@ import {
   defaultPreferences,
   getEffectiveEvents,
   mergePreferences,
+  payloadInventory,
+  reconcilePreferences,
   validatePreferences,
 } from "./preferences.js";
 import { loadProfiles, saveProfiles } from "./profiles.js";
@@ -19,6 +21,7 @@ const state = {
   preferences: null,
   outputs: [],
   dataSignature: "",
+  inventory: null,
   pendingExports: [],
   compactAfterPaste: false,
   inputTimer: null,
@@ -44,6 +47,7 @@ function showToast(message) {
 }
 
 async function copyText(text, successMessage) {
+  let copied = true;
   try {
     await navigator.clipboard.writeText(text);
   } catch {
@@ -52,10 +56,14 @@ async function copyText(text, successMessage) {
     temporary.className = "clipboard-fallback";
     document.body.appendChild(temporary);
     temporary.select();
-    document.execCommand("copy");
+    try {
+      copied = document.execCommand("copy");
+    } catch {
+      copied = false;
+    }
     temporary.remove();
   }
-  showToast(successMessage);
+  showToast(copied ? successMessage : "Copying was blocked by the browser. Select the text and copy it manually.");
 }
 
 function downloadCalendar(output) {
@@ -126,10 +134,16 @@ function setWorkbenchCompact(compact) {
 
 function renderValid(payload, compactOnSuccess = false) {
   const signature = JSON.stringify(payload.events.map((event) => [event.activity, event.day, event.start, event.teachingWeeks]));
+  const inventory = payloadInventory(payload);
   state.payload = payload;
   if (signature !== state.dataSignature || !state.preferences) {
     state.preferences = defaultPreferences(payload);
     state.dataSignature = signature;
+    state.inventory = inventory;
+    syncControls(elements, payload, state.preferences, loadProfiles(), refreshOutput);
+  } else if (JSON.stringify(inventory) !== JSON.stringify(state.inventory)) {
+    state.preferences = reconcilePreferences(state.preferences, state.inventory, payload);
+    state.inventory = inventory;
     syncControls(elements, payload, state.preferences, loadProfiles(), refreshOutput);
   }
   elements.summaryEmpty.hidden = true;
@@ -337,7 +351,10 @@ elements.saveProfile.addEventListener("click", () => {
   const profiles = loadProfiles();
   if (profiles[name] && !confirm(`Replace the saved profile “${name}”?`)) return;
   profiles[name] = structuredClone(state.preferences);
-  saveProfiles(profiles);
+  if (!saveProfiles(profiles)) {
+    showToast("This browser blocked saving the profile. Check private browsing or storage settings.");
+    return;
+  }
   renderProfiles(elements, profiles);
   elements.profileSelect.value = name;
   elements.profileName.value = "";
@@ -363,7 +380,10 @@ elements.deleteProfile.addEventListener("click", () => {
   if (!confirm(`Delete the saved profile “${name}”?`)) return;
   const profiles = loadProfiles();
   delete profiles[name];
-  saveProfiles(profiles);
+  if (!saveProfiles(profiles)) {
+    showToast("This browser blocked updating saved profiles.");
+    return;
+  }
   elements.profileSelect.value = "";
   renderProfiles(elements, profiles);
   showToast(`${name} deleted.`);

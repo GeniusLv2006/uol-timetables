@@ -53,8 +53,8 @@ can be saved as named profiles in browser-local storage; timetable JSON is not s
 - `js/bookmarklet.js` — self-contained clipboard extractor and bookmarklet builder.
 - `js/diagnostics.js` — duplicate and timetable clash detection.
 - `tests/calendar.test.js` — converter and diagnostics regression tests.
-- `convert_to_ical.py` — converts the JSON schema to RFC 5545 iCalendar.
-- `extract_timetable.js` — reusable browser-side extractor for the semester grid.
+- `tests/converter.test.js` — checks the Python converter matches the web app's default export.
+- `convert_to_ical.py` — converts the JSON schema to RFC 5545 iCalendar using the web app's default settings.
 - `scripts/build.mjs` — creates `dist/` from an explicit public-file allowlist.
 - `_headers` — security and cache headers applied to static assets.
 - `wrangler.jsonc` — Cloudflare Workers Static Assets configuration.
@@ -112,7 +112,8 @@ python3 convert_to_ical.py timetable.semester1.json timetable.semester1.ics
 ```
 
 The calendar uses `Europe/London`, so classes stay at the correct Liverpool local
-time when British Summer Time ends. Semester 1 week 1 is anchored to Monday,
+time when British Summer Time ends. The Python converter supports only
+`Europe/London`; use the web app for other timezones. Semester 1 week 1 is anchored to Monday,
 28 September 2026, matching the University's published 2026/27 term dates.
 
 ## JSON schema
@@ -126,5 +127,5 @@ Each item in `events` contains:
 
 The source page is server-rendered rather than backed by an exposed JSON payload.
 Times are encoded spatially: the grid begins at 08:00, each logical column is 30
-minutes, and a course cell's `colspan` is its duration. `extract_timetable.js`
+minutes, and a course cell's `colspan` is its duration. `js/bookmarklet.js`
 turns that layout into the JSON fields above.

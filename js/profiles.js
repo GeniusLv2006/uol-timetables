@@ -9,5 +9,10 @@ export function loadProfiles() {
 }
 
 export function saveProfiles(profiles) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
+    return true;
+  } catch {
+    return false;
+  }
 }
