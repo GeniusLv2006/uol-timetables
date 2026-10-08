@@ -53,17 +53,26 @@ test("Python converter cleans line breaks and control characters like the web ap
 });
 
 test("Python converter rejects the payloads the web app rejects", { skip: !hasPython && "python3 is not installed" }, async () => {
-  for (const [fields, message] of [
+  const cases = [
     [{ moduleUrl: "javascript:alert(1)" }, /not an https:\/\/ link/],
     [{ moduleUrl: "https://example.com/\nBEGIN:VALARM" }, /not an https:\/\/ link/],
     [{ moduleCode: { code: "DEMO101" } }, /missing moduleCode/],
     [{ location: 101 }, /not text/],
-  ]) {
+    [{ day: "mon" }, /invalid day/],
+    [{ day: ["MON"] }, /invalid day/],
+    [{ start: "25:00" }, /invalid start or end time/],
+    [{ end: "09:00" }, /must end after it starts/],
+    [{ teachingWeeks: "S1 54" }, /Invalid (week|teachingWeeks) range/],
+  ];
+  for (const [fields, message] of cases) {
     const payload = structuredClone(source);
     Object.assign(payload.events[0], fields);
     assert.throws(() => validatePayload(structuredClone(payload)), message);
     await assert.rejects(convertWithPython(payload), message);
   }
+  const tuesday = { ...structuredClone(source), weekOneMonday: "2026-09-29" };
+  assert.throws(() => validatePayload(structuredClone(tuesday)), /valid Monday/);
+  await assert.rejects(convertWithPython(tuesday), (error) => /valid Monday/.test(error.stderr) && !/Traceback/.test(error.stderr));
 });
 
 test("Python converter refuses timezones it cannot describe", { skip: !hasPython && "python3 is not installed" }, async () => {

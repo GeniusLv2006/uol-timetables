@@ -210,8 +210,9 @@ export function syncControls(elements, payload, preferences, profiles, onChange)
   elements.includeWeeks.value = preferences.includeWeeks;
   elements.excludeWeeks.value = preferences.excludeWeeks;
   elements.readingWeek.value = preferences.readingWeek;
-  document.querySelector(`input[name="recurrence-mode"][value="${preferences.recurrenceMode}"]`).checked = true;
-  document.querySelector(`input[name="split-mode"][value="${preferences.splitMode}"]`).checked = true;
+  for (const [name, value] of [["recurrence-mode", preferences.recurrenceMode], ["split-mode", preferences.splitMode]]) {
+    document.querySelectorAll(`input[name="${name}"]`).forEach((radio) => { radio.checked = radio.value === value; });
+  }
   const modules = [...new Set(payload.events.map((event) => event.moduleCode))].sort();
   const locations = [...new Set(payload.events.map((event) => event.location).filter(Boolean))].sort();
   renderMappingList(elements.moduleAliases, modules, preferences, "moduleAliases", "Optional short name", onChange);

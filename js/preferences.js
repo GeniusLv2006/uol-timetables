@@ -54,21 +54,55 @@ export function defaultPreferences(payload) {
   };
 }
 
+const CHOICES = {
+  titleFormat: ["code", "code-name", "code-type", "name", "custom"],
+  locationFormat: ["full", "building-room", "room", "hidden"],
+  reminderMinutes: ["0", "5", "10", "15", "30", "custom"],
+  recurrenceMode: ["recurring", "individual"],
+  splitMode: ["combined", "module", "type"],
+};
+const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+// A saved value is kept only when it has the default's type and, for choices,
+// is one the controls offer; otherwise the default applies.
+function acceptedValue(field, value, fallback) {
+  if (typeof value !== typeof fallback) return fallback;
+  if (CHOICES[field] && !CHOICES[field].includes(value)) return fallback;
+  if (field === "calendarColor" && !COLOR_PATTERN.test(value)) return fallback;
+  return value;
+}
+
+// Saved profiles come from localStorage and may predate the current settings,
+// so every field is checked against the defaults before it is used.
 export function mergePreferences(saved, payload, current = defaultPreferences(payload)) {
   const base = defaultPreferences(payload);
-  const merged = { ...base, ...saved };
+  const profile = isPlainObject(saved) ? saved : {};
+  const merged = {};
+  for (const [field, fallback] of Object.entries(base)) merged[field] = acceptedValue(field, profile[field], fallback);
   for (const field of SEMESTER_FIELDS) merged[field] = current[field];
-  merged.moduleAliases = { ...base.moduleAliases, ...(saved.moduleAliases || {}) };
-  merged.locationAliases = { ...base.locationAliases, ...(saved.locationAliases || {}) };
-  merged.descriptionEnabled = { ...base.descriptionEnabled, ...(saved.descriptionEnabled || {}) };
-  merged.descriptionOrder = Array.isArray(saved.descriptionOrder)
-    ? [...saved.descriptionOrder.filter((key) => key in DESCRIPTION_FIELDS), ...base.descriptionOrder.filter((key) => !saved.descriptionOrder.includes(key))]
-    : base.descriptionOrder;
-  merged.includedDeliveryTypes = Array.isArray(saved.includedDeliveryTypes)
-    ? base.includedDeliveryTypes.filter((type) => saved.includedDeliveryTypes.includes(type))
+  const textMap = (defaults, values) => ({
+    ...defaults,
+    ...Object.fromEntries(Object.entries(isPlainObject(values) ? values : {}).filter(([, value]) => typeof value === "string")),
+  });
+  merged.moduleAliases = textMap(base.moduleAliases, profile.moduleAliases);
+  merged.locationAliases = textMap(base.locationAliases, profile.locationAliases);
+  const enabled = isPlainObject(profile.descriptionEnabled) ? profile.descriptionEnabled : {};
+  merged.descriptionEnabled = Object.fromEntries(
+    Object.entries(base.descriptionEnabled).map(([key, value]) => [key, typeof enabled[key] === "boolean" ? enabled[key] : value]),
+  );
+  const order = Array.isArray(profile.descriptionOrder)
+    ? [...new Set(profile.descriptionOrder.filter((key) => Object.hasOwn(DESCRIPTION_FIELDS, key)))]
+    : [];
+  merged.descriptionOrder = [...order, ...base.descriptionOrder.filter((key) => !order.includes(key))];
+  merged.includedDeliveryTypes = Array.isArray(profile.includedDeliveryTypes)
+    ? base.includedDeliveryTypes.filter((type) => profile.includedDeliveryTypes.includes(type))
     : base.includedDeliveryTypes;
-  merged.includedActivities = Array.isArray(saved.includedActivities)
-    ? base.includedActivities.filter((activity) => saved.includedActivities.includes(activity))
+  merged.includedActivities = Array.isArray(profile.includedActivities)
+    ? base.includedActivities.filter((activity) => profile.includedActivities.includes(activity))
     : base.includedActivities;
   return merged;
 }
@@ -214,6 +248,7 @@ export function validatePreferences(preferences) {
   if (!preferences.weekOneMonday) throw new Error("Set Week One Monday in Schedule settings to place events on the calendar.");
   if (!isMondayDate(preferences.weekOneMonday)) throw new Error("Week One Monday must be a valid Monday date.");
   if (!preferences.calendarName.trim()) throw new Error("Calendar Name cannot be empty.");
+  if (!COLOR_PATTERN.test(preferences.calendarColor)) throw new Error("Calendar Colour must be a hex colour such as #243352.");
   if (preferences.titleFormat === "custom" && !preferences.customTitle.trim()) throw new Error("Custom Title Template cannot be empty.");
   if (preferences.semesterStart && preferences.semesterEnd && preferences.semesterStart > preferences.semesterEnd) throw new Error("Semester Start must be before Semester End.");
   if (preferences.readingWeek && (Number(preferences.readingWeek) < 1 || Number(preferences.readingWeek) > 53)) throw new Error("Reading Week must be between 1 and 53.");

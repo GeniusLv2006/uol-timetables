@@ -50,6 +50,11 @@ test("teaching weeks support discrete weeks and mixed ranges", () => {
   ]);
 });
 
+test("teaching weeks stay within one year of Week One", () => {
+  assert.deepEqual(parseWeekRanges("S1 53"), [{ start: 53, end: 53 }]);
+  for (const value of ["S1 54", "S1 99", "S1 50-S1 60"]) assert.throws(() => parseWeekRanges(value), /Invalid week range/);
+});
+
 test("payload validation rejects omitted weekdays in imported data", () => {
   const payload = structuredClone(source);
   payload.events[0].day = "";
@@ -195,6 +200,45 @@ test("applying a saved profile keeps the loaded semester's dates and week rules"
   assert.match(ical, /DTSTART;TZID=Europe\/London:20270201T/);
   assert.doesNotMatch(ical, /DTSTART;TZID=Europe\/London:2026/);
   assert.equal(payload.weekOneMonday, "2026-09-28");
+});
+
+test("saved profiles fall back to defaults for invalid or outdated values", () => {
+  const { payload, preferences: current } = setup();
+  const defaults = defaultPreferences(payload);
+  const applied = mergePreferences({
+    titleFormat: "bogus",
+    recurrenceMode: 'x"]',
+    splitMode: "module",
+    reminderMinutes: 15,
+    calendarColor: "#ABCDEF\nX-INJECTED:1",
+    customTitle: 5,
+    fileName: "mine.ics",
+    moduleAliases: { DEMO101: 3, OLD100: "Old" },
+    descriptionEnabled: { activity: "yes", source: true },
+    descriptionOrder: ["toString", "source", "source"],
+    extra: "ignored",
+  }, payload, current);
+  assert.equal(applied.titleFormat, defaults.titleFormat);
+  assert.equal(applied.recurrenceMode, defaults.recurrenceMode);
+  assert.equal(applied.splitMode, "module");
+  assert.equal(applied.reminderMinutes, defaults.reminderMinutes);
+  assert.equal(applied.calendarColor, defaults.calendarColor);
+  assert.equal(applied.customTitle, defaults.customTitle);
+  assert.equal(applied.fileName, "mine.ics");
+  assert.equal(applied.moduleAliases.DEMO101, "");
+  assert.equal(applied.moduleAliases.OLD100, "Old");
+  assert.equal(applied.descriptionEnabled.activity, true);
+  assert.equal(applied.descriptionEnabled.source, true);
+  assert.deepEqual(applied.descriptionOrder, ["source", ...defaults.descriptionOrder.filter((key) => key !== "source")]);
+  assert.equal("extra" in applied, false);
+  assert.deepEqual(mergePreferences(null, payload, current), mergePreferences({}, payload, current));
+  assert.doesNotThrow(() => validatePreferences(applied));
+});
+
+test("preference validation rejects calendar colours that are not hex", () => {
+  const { preferences } = setup();
+  preferences.calendarColor = "#243352\nX-INJECTED:1";
+  assert.throws(() => validatePreferences(preferences), /hex colour/);
 });
 
 test("moving Week One shifts the semester bounds instead of dropping sessions", () => {

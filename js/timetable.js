@@ -10,7 +10,7 @@ export function parseWeekRanges(value) {
     const match = token.match(tokenPattern);
     const start = Number(match[1]);
     const end = Number(match[2] || match[1]);
-    if (start < 1 || end < start) throw new Error(`Invalid week range: “${value}”.`);
+    if (start < 1 || end < start || end > 53) throw new Error(`Invalid week range: “${value}”.`);
     return { start, end };
   });
 }
@@ -130,7 +130,7 @@ export function validatePayload(input) {
   payload.events.forEach((event, index) => {
     const prefix = `Event ${index + 1}`;
     if (!event || typeof event !== "object") throw new Error(`${prefix} must be an object.`);
-    if (!Object.hasOwn(DAY_OFFSETS, event.day)) throw new Error(`${prefix} has an invalid day.`);
+    if (typeof event.day !== "string" || !Object.hasOwn(DAY_OFFSETS, event.day)) throw new Error(`${prefix} has an invalid day.`);
     if (!isTime(event.start) || !isTime(event.end)) throw new Error(`${prefix} has an invalid start or end time.`);
     if (minutesFromTime(event.end) <= minutesFromTime(event.start)) throw new Error(`${prefix} must end after it starts.`);
     if (!isText(event.moduleCode) || !isText(event.moduleTitle) || !isText(event.activity)) throw new Error(`${prefix} is missing moduleCode, moduleTitle, or activity.`);
