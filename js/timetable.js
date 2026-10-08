@@ -92,6 +92,17 @@ export function minutesFromTime(value) {
   return hours * 60 + minutes;
 }
 
+// The URL property is written unescaped, so only plain https links are allowed.
+const MODULE_URL_PATTERN = /^https:\/\/[^\s\u0000-\u001f\u007f-\u009f]+$/i;
+
+function isText(value) {
+  return typeof value === "string" && value.trim() !== "";
+}
+
+function isOptionalText(value) {
+  return value == null || typeof value === "string";
+}
+
 function isTime(value) {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 }
@@ -114,6 +125,7 @@ export function validatePayload(input) {
     throw new Error(`Unknown timezone: “${payload.timezone}”.`);
   }
   payload.timezone ||= "Europe/London";
+  if (!isOptionalText(payload.calendarName)) throw new Error("calendarName must be text.");
   payload.calendarName ||= "University of Liverpool Timetable";
   payload.events.forEach((event, index) => {
     const prefix = `Event ${index + 1}`;
@@ -121,7 +133,12 @@ export function validatePayload(input) {
     if (!Object.hasOwn(DAY_OFFSETS, event.day)) throw new Error(`${prefix} has an invalid day.`);
     if (!isTime(event.start) || !isTime(event.end)) throw new Error(`${prefix} has an invalid start or end time.`);
     if (minutesFromTime(event.end) <= minutesFromTime(event.start)) throw new Error(`${prefix} must end after it starts.`);
-    if (!event.moduleCode || !event.moduleTitle || !event.activity) throw new Error(`${prefix} is missing moduleCode, moduleTitle, or activity.`);
+    if (!isText(event.moduleCode) || !isText(event.moduleTitle) || !isText(event.activity)) throw new Error(`${prefix} is missing moduleCode, moduleTitle, or activity.`);
+    if (!["deliveryType", "academic", "location", "moduleUrl"].every((field) => isOptionalText(event[field]))) {
+      throw new Error(`${prefix} has a deliveryType, academic, location, or moduleUrl that is not text.`);
+    }
+    if (event.moduleUrl && !MODULE_URL_PATTERN.test(event.moduleUrl)) throw new Error(`${prefix} has a moduleUrl that is not an https:// link.`);
+    if (typeof event.teachingWeeks !== "string") throw new Error(`${prefix} has teachingWeeks that are not text.`);
     parseWeekRanges(event.teachingWeeks);
   });
   return payload;

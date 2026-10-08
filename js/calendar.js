@@ -2,8 +2,12 @@ import { contiguousRanges, dateForWeek, localStamp } from "./timetable.js";
 import { canonicalTimezone, timezoneComponent } from "./timezone.js";
 import { descriptionForEvent, formatLocation, reminderValue, titleForEvent } from "./preferences.js";
 
+// Line breaks become escaped newlines and other control characters are dropped,
+// so no text value can end its content line early.
 function escapeIcal(value) {
   return String(value ?? "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/[\u0000-\u0008\u000b-\u001f\u007f-\u009f]/g, "")
     .replace(/\\/g, "\\\\")
     .replace(/\n/g, "\\n")
     .replace(/;/g, "\\;")
