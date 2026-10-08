@@ -174,6 +174,12 @@ Each item in `events` contains:
 - `deliveryType`, `activity`, `academic`, `location`
 - `teachingWeeks` (for example `S1 01-S1 08, S1 10-S1 12` or `S1 01, S1 03, S1 05`)
 
+Text fields must be strings: `moduleCode`, `moduleTitle`, `activity`, and
+`teachingWeeks` are required, and `deliveryType`, `academic`, `location`, and
+`moduleUrl` may be `null`. `moduleUrl`, when present, must be an `https://` link
+without spaces or control characters. Line breaks in text are exported as
+escaped newlines, and other control characters are removed.
+
 The source page is server-rendered rather than backed by an exposed JSON payload.
 Times are encoded spatially: the grid begins at 08:00, each logical column is 30
 minutes, and a course cell's `colspan` is its duration. `js/bookmarklet.js`

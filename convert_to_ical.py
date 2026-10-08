@@ -21,12 +21,16 @@ DAY_OFFSETS = {
     "SUN": 6,
 }
 WEEK_TOKEN_RE = re.compile(r"^S\d+\s+(\d{1,2})(?:\s*-\s*S\d+\s+(\d{1,2}))?$", re.IGNORECASE)
+CONTROL_CHARS_RE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
+# The URL property is written unescaped, so only plain https links are allowed.
+MODULE_URL_RE = re.compile(r"https://[^\s\x00-\x1f\x7f-\x9f]+", re.IGNORECASE)
 
 
 def escape_ical(value: Any) -> str:
-    """Escape an RFC 5545 TEXT value."""
+    """Escape an RFC 5545 TEXT value; line breaks become \\n and other control characters are dropped."""
+    text = str(value).replace("\r\n", "\n").replace("\r", "\n")
     return (
-        str(value)
+        CONTROL_CHARS_RE.sub("", text)
         .replace("\\", "\\\\")
         .replace("\n", "\\n")
         .replace(";", "\\;")
@@ -191,6 +195,29 @@ def event_components(
         yield lines
 
 
+def validate_text_fields(payload: dict[str, Any]) -> None:
+    """Mirror the text checks in validatePayload (js/timetable.js)."""
+
+    def is_text(value: Any) -> bool:
+        return isinstance(value, str) and value.strip() != ""
+
+    def is_optional_text(value: Any) -> bool:
+        return value is None or isinstance(value, str)
+
+    if not is_optional_text(payload.get("calendarName")):
+        raise ValueError("calendarName must be text.")
+    for index, event in enumerate(payload["events"], start=1):
+        prefix = f"Event {index}"
+        if not all(is_text(event.get(field)) for field in ("moduleCode", "moduleTitle", "activity")):
+            raise ValueError(f"{prefix} is missing moduleCode, moduleTitle, or activity.")
+        if not all(is_optional_text(event.get(field)) for field in ("deliveryType", "academic", "location", "moduleUrl")):
+            raise ValueError(f"{prefix} has a deliveryType, academic, location, or moduleUrl that is not text.")
+        if event.get("moduleUrl") and not MODULE_URL_RE.fullmatch(event["moduleUrl"]):
+            raise ValueError(f"{prefix} has a moduleUrl that is not an https:// link.")
+        if not isinstance(event.get("teachingWeeks"), str):
+            raise ValueError(f"{prefix} has teachingWeeks that are not text.")
+
+
 def convert(payload: dict[str, Any]) -> str:
     timezone_name = payload.get("timezone") or "Europe/London"
     if timezone_name != "Europe/London":
@@ -198,6 +225,7 @@ def convert(payload: dict[str, Any]) -> str:
         raise ValueError(
             f"Unsupported timezone {timezone_name!r}; the Python converter only supports Europe/London."
         )
+    validate_text_fields(payload)
     if not payload.get("weekOneMonday"):
         raise ValueError("weekOneMonday is missing; add the semester's first teaching Monday (YYYY-MM-DD) to the JSON.")
     week_one_monday = date.fromisoformat(payload["weekOneMonday"])

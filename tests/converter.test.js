@@ -44,6 +44,28 @@ test("Python converter matches the web app's default export", { skip: !hasPython
   assert.equal(await convertWithPython(payload), convertWithBrowserCode(payload));
 });
 
+test("Python converter cleans line breaks and control characters like the web app", { skip: !hasPython && "python3 is not installed" }, async () => {
+  const payload = structuredClone(source);
+  payload.events[0].location = "Hall\rATTENDEE:mailto:a@example.com\r\nAnnex\u0000\u000b\u0085";
+  payload.events[1].academic = "Dr A\rDr B";
+  payload.calendarName = "Timetable\r\nX-INJECTED:1";
+  assert.equal(await convertWithPython(payload), convertWithBrowserCode(payload));
+});
+
+test("Python converter rejects the payloads the web app rejects", { skip: !hasPython && "python3 is not installed" }, async () => {
+  for (const [fields, message] of [
+    [{ moduleUrl: "javascript:alert(1)" }, /not an https:\/\/ link/],
+    [{ moduleUrl: "https://example.com/\nBEGIN:VALARM" }, /not an https:\/\/ link/],
+    [{ moduleCode: { code: "DEMO101" } }, /missing moduleCode/],
+    [{ location: 101 }, /not text/],
+  ]) {
+    const payload = structuredClone(source);
+    Object.assign(payload.events[0], fields);
+    assert.throws(() => validatePayload(structuredClone(payload)), message);
+    await assert.rejects(convertWithPython(payload), message);
+  }
+});
+
 test("Python converter refuses timezones it cannot describe", { skip: !hasPython && "python3 is not installed" }, async () => {
   const payload = { ...structuredClone(source), timezone: "Asia/Shanghai" };
   await assert.rejects(convertWithPython(payload), /only supports Europe\/London/);

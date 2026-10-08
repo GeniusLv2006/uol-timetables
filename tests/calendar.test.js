@@ -150,6 +150,14 @@ test("text values escape iCalendar special characters", () => {
   assert.ok(ical.includes("LOCATION:Hall\\, Room 1\\; Floor \\\\2\\nAnnex\r\n"));
 });
 
+test("text values cannot start new content lines", () => {
+  const { payload, preferences } = setup();
+  payload.events[0].location = "Hall\rATTENDEE:mailto:a@example.com\r\nAnnex\u0000\u000b\u0085";
+  const ical = unfold(buildOutputs(payload, preferences, getEffectiveEvents(payload, preferences))[0].ical);
+  assert.ok(ical.includes("LOCATION:Hall\\nATTENDEE:mailto:a@example.com\\nAnnex\r\n"));
+  assert.doesNotMatch(ical.replace(/\r\n/g, ""), /[\r\n\u0000\u000b\u0085]/);
+});
+
 test("editing data keeps customisations and includes newly introduced values", () => {
   const { payload, preferences } = setup();
   preferences.moduleAliases.DEMO101 = "Intro";
@@ -226,6 +234,28 @@ test("payload validation rejects non-object events and inherited day names", () 
   const payload = structuredClone(source);
   payload.events[0] = null;
   assert.throws(() => validatePayload(payload), /Event 1 must be an object/);
+});
+
+test("payload validation requires text fields and https module links", () => {
+  const invalid = [
+    [{ moduleCode: { code: "DEMO101" } }, /missing moduleCode/],
+    [{ activity: "   " }, /missing moduleCode/],
+    [{ location: 101 }, /not text/],
+    [{ moduleUrl: ["https://example.com"] }, /not text/],
+    [{ teachingWeeks: ["S1 01"] }, /teachingWeeks that are not text/],
+    [{ moduleUrl: "javascript:alert(1)" }, /not an https:\/\/ link/],
+    [{ moduleUrl: "http://tulip.liv.ac.uk/mods/student/DEMO101.htm" }, /not an https:\/\/ link/],
+    [{ moduleUrl: "https://example.com/\nBEGIN:VALARM" }, /not an https:\/\/ link/],
+  ];
+  for (const [fields, message] of invalid) {
+    const payload = structuredClone(source);
+    Object.assign(payload.events[0], fields);
+    assert.throws(() => validatePayload(payload), message);
+  }
+  assert.throws(() => validatePayload({ ...structuredClone(source), calendarName: 42 }), /calendarName must be text/);
+  const payload = structuredClone(source);
+  Object.assign(payload.events[0], { moduleUrl: "https://tulip.liv.ac.uk/mods/student/DEMO101_202627.htm", academic: null, location: "" });
+  assert.doesNotThrow(() => validatePayload(payload));
 });
 
 test("activity filters treat repeated activity codes as one choice", () => {
