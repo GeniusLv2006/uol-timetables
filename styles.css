@@ -336,7 +336,9 @@ h1 {
 .instructions li { display: grid; grid-template-columns: 54px 1fr; padding: 25px 0; border-bottom: 1px solid var(--line); }
 .instructions li span { color: var(--gold-deep); font: 700 11px/1.7 var(--mono); }
 .instructions li p { margin: 0; font-size: 17px; line-height: 1.55; }
-.privacy-note { margin: 25px 0 0 54px; color: var(--ink-soft); font-size: 13px; line-height: 1.6; }
+.privacy-note { display: grid; grid-template-columns: 54px 1fr; align-items: baseline; margin: 25px 0 0; }
+.privacy-note span { color: var(--gold-deep); font: 700 11px/1.7 var(--mono); text-transform: uppercase; }
+.privacy-note p { margin: 0; color: var(--ink-soft); font-size: 13px; line-height: 1.6; }
 .ios-import-note {
   margin: 24px 0 0;
   padding: 14px 16px;
@@ -1108,7 +1110,6 @@ textarea:focus { border-color: var(--gold); }
   .section-heading h2 { font-size: 43px; }
   .extract-grid { grid-template-columns: minmax(0, 1fr); }
   .bookmark-ticket { box-shadow: 8px 8px 0 var(--ink); }
-  .privacy-note { margin-left: 0; }
   .input-panel, .output-panel { padding: 26px 20px; }
   .panel-header { align-items: flex-start; }
   .panel-actions { flex-direction: column; gap: 8px; }
