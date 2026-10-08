@@ -132,7 +132,8 @@ python3 convert_to_ical.py timetable.semester1.json timetable.semester1.ics
 The script needs only the Python standard library and produces the same file as
 the web app's default settings. Unlike the web app, it does not look up known
 Week One dates, so the JSON must include `weekOneMonday`. It supports only
-`Europe/London`; use the web app for other timezones.
+`Europe/London`; use the web app for other timezones. It applies the same
+input checks as the web app and reports invalid data as a one-line error.
 
 ## Week One dates
 
@@ -172,7 +173,8 @@ Each item in `events` contains:
 - `day`, `start`, `end`, `durationMinutes`
 - `moduleCode`, `moduleTitle`, `moduleUrl`
 - `deliveryType`, `activity`, `academic`, `location`
-- `teachingWeeks` (for example `S1 01-S1 08, S1 10-S1 12` or `S1 01, S1 03, S1 05`)
+- `teachingWeeks` (for example `S1 01-S1 08, S1 10-S1 12` or `S1 01, S1 03, S1 05`),
+  with week numbers from 1 to 53
 
 Text fields must be strings: `moduleCode`, `moduleTitle`, `activity`, and
 `teachingWeeks` are required, and `deliveryType`, `academic`, `location`, and

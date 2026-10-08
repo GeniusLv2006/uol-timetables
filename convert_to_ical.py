@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
@@ -20,7 +21,8 @@ DAY_OFFSETS = {
     "SAT": 5,
     "SUN": 6,
 }
-WEEK_TOKEN_RE = re.compile(r"^S\d+\s+(\d{1,2})(?:\s*-\s*S\d+\s+(\d{1,2}))?$", re.IGNORECASE)
+TIME_RE = re.compile(r"([01]\d|2[0-3]):[0-5]\d", re.ASCII)
+WEEK_TOKEN_RE = re.compile(r"^S\d+\s+(\d{1,2})(?:\s*-\s*S\d+\s+(\d{1,2}))?$", re.IGNORECASE | re.ASCII)
 CONTROL_CHARS_RE = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
 # The URL property is written unescaped, so only plain https links are allowed.
 MODULE_URL_RE = re.compile(r"https://[^\s\x00-\x1f\x7f-\x9f]+", re.IGNORECASE)
@@ -70,7 +72,7 @@ def parse_week_ranges(value: str) -> list[tuple[int, int]]:
     if not tokens or any(match is None for match in matches):
         raise ValueError(f"Cannot parse teachingWeeks: {value!r}")
     ranges = [(int(match.group(1)), int(match.group(2) or match.group(1))) for match in matches]
-    if any(start < 1 or end < start for start, end in ranges):
+    if any(start < 1 or end < start or end > 53 for start, end in ranges):
         raise ValueError(f"Invalid teachingWeeks range: {value!r}")
     return ranges
 
@@ -149,9 +151,7 @@ def event_components(
     dtstamp: str,
 ) -> Iterable[list[str]]:
     """Mirror the web app's default export settings."""
-    day_code = event["day"].upper()
-    if day_code not in DAY_OFFSETS:
-        raise ValueError(f"Unknown day code: {event['day']!r}")
+    day_code = event["day"]
 
     description = "\n".join(
         f"{prefix}: {event[field]}"
@@ -195,8 +195,13 @@ def event_components(
         yield lines
 
 
-def validate_text_fields(payload: dict[str, Any]) -> None:
-    """Mirror the text checks in validatePayload (js/timetable.js)."""
+def minutes_from_time(value: str) -> int:
+    hours, minutes = (int(part) for part in value.split(":"))
+    return hours * 60 + minutes
+
+
+def validate_payload(payload: Any) -> None:
+    """Mirror the event checks in validatePayload (js/timetable.js)."""
 
     def is_text(value: Any) -> bool:
         return isinstance(value, str) and value.strip() != ""
@@ -204,10 +209,24 @@ def validate_text_fields(payload: dict[str, Any]) -> None:
     def is_optional_text(value: Any) -> bool:
         return value is None or isinstance(value, str)
 
+    if not isinstance(payload, dict):
+        raise ValueError("The JSON root must be an object.")
+    events = payload.get("events")
+    if not isinstance(events, list) or not events:
+        raise ValueError("The JSON must contain a non-empty events array.")
     if not is_optional_text(payload.get("calendarName")):
         raise ValueError("calendarName must be text.")
-    for index, event in enumerate(payload["events"], start=1):
+    for index, event in enumerate(events, start=1):
         prefix = f"Event {index}"
+        if not isinstance(event, dict):
+            raise ValueError(f"{prefix} must be an object.")
+        if not isinstance(event.get("day"), str) or event["day"] not in DAY_OFFSETS:
+            raise ValueError(f"{prefix} has an invalid day.")
+        times = (event.get("start"), event.get("end"))
+        if not all(isinstance(value, str) and TIME_RE.fullmatch(value) for value in times):
+            raise ValueError(f"{prefix} has an invalid start or end time.")
+        if minutes_from_time(event["end"]) <= minutes_from_time(event["start"]):
+            raise ValueError(f"{prefix} must end after it starts.")
         if not all(is_text(event.get(field)) for field in ("moduleCode", "moduleTitle", "activity")):
             raise ValueError(f"{prefix} is missing moduleCode, moduleTitle, or activity.")
         if not all(is_optional_text(event.get(field)) for field in ("deliveryType", "academic", "location", "moduleUrl")):
@@ -216,19 +235,28 @@ def validate_text_fields(payload: dict[str, Any]) -> None:
             raise ValueError(f"{prefix} has a moduleUrl that is not an https:// link.")
         if not isinstance(event.get("teachingWeeks"), str):
             raise ValueError(f"{prefix} has teachingWeeks that are not text.")
+        parse_week_ranges(event["teachingWeeks"])
 
 
 def convert(payload: dict[str, Any]) -> str:
+    validate_payload(payload)
     timezone_name = payload.get("timezone") or "Europe/London"
     if timezone_name != "Europe/London":
         # The VTIMEZONE below encodes UK daylight-saving rules only.
         raise ValueError(
             f"Unsupported timezone {timezone_name!r}; the Python converter only supports Europe/London."
         )
-    validate_text_fields(payload)
     if not payload.get("weekOneMonday"):
         raise ValueError("weekOneMonday is missing; add the semester's first teaching Monday (YYYY-MM-DD) to the JSON.")
-    week_one_monday = date.fromisoformat(payload["weekOneMonday"])
+    week_one_text = payload["weekOneMonday"]
+    week_one_monday = None
+    if isinstance(week_one_text, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", week_one_text, re.ASCII):
+        try:
+            week_one_monday = date.fromisoformat(week_one_text)
+        except ValueError:
+            pass
+    if week_one_monday is None or week_one_monday.weekday() != 0:
+        raise ValueError("weekOneMonday must be a valid Monday date (YYYY-MM-DD).")
     generated_at = payload.get("generatedAt")
     if generated_at:
         parsed = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
@@ -237,7 +265,7 @@ def convert(payload: dict[str, Any]) -> str:
         dtstamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
     years = [
-        event_date(week_one_monday, week, event["day"].upper()).year
+        event_date(week_one_monday, week, event["day"]).year
         for event in payload["events"]
         for week in source_weeks(event)
     ]
@@ -271,8 +299,11 @@ def main() -> None:
     parser.add_argument("output", type=Path, help="Destination .ics file")
     args = parser.parse_args()
 
-    payload = json.loads(args.input.read_text(encoding="utf-8"))
-    calendar = convert(payload)
+    try:
+        payload = json.loads(args.input.read_text(encoding="utf-8"))
+        calendar = convert(payload)
+    except (OSError, ValueError) as error:
+        sys.exit(f"Error: {error}")
     args.output.write_text(calendar, encoding="utf-8", newline="")
     print(f"Wrote {args.output} from {len(payload['events'])} activity patterns")
 
