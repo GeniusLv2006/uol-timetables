@@ -3,11 +3,15 @@
 [![CI](https://github.com/GeniusLv2006/uol-timetables/actions/workflows/ci.yml/badge.svg)](https://github.com/GeniusLv2006/uol-timetables/actions/workflows/ci.yml)
 [![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg)](LICENSE)
 
+**English** | [简体中文](README.zh-CN.md)
+
 Turn your University of Liverpool **My Timetable** into a calendar file you can add to Google Calendar, Apple Calendar, Outlook, or any other calendar app.
 
 **Use it here: <https://timetables.xjtlu.uk>**
 
 Everything happens in your own browser. Your timetable is never uploaded, and you do not need to install anything or create an account.
+
+![The UoL Timetable Converter home page, showing the four steps: save, visit, paste, export](docs/images/home.png)
 
 > [!IMPORTANT]
 > This is an **unofficial, independent tool**. It is not affiliated with, endorsed by, or operated by the University of Liverpool or Xi’an Jiaotong-Liverpool University (XJTLU). The `xjtlu.uk` domain is privately registered and is not a university website. My Timetable remains the authoritative source: always check important sessions there.
@@ -18,6 +22,8 @@ Everything happens in your own browser. Your timetable is never uploaded, and yo
 - **Creates an `.ics` calendar file** with the right dates, times, rooms, and teaching weeks, including the change between British Summer Time and Greenwich Mean Time.
 - **Lets you personalise the calendar** before you export it: event titles, module nicknames, reminders, which sessions to include, and whether to split it into one calendar per module.
 - **Warns you about problems** such as duplicate or clashing sessions.
+
+![The converter with sample data loaded: a summary of 3 modules, 4 patterns, and 11 sessions, no conflicts, and an Export Calendar button](docs/images/converter.png)
 
 ## How to use it
 
