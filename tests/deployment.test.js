@@ -29,6 +29,12 @@ test("deployed HTML does not expose a harvestable contact address", () => {
   assert.doesNotMatch(homepage, /[\w.+-]+@[\w.-]+\.[a-z]{2,}/i);
 });
 
+test("footer links to the AGPL source instead of reserving all rights", () => {
+  assert.doesNotMatch(homepage, /All rights reserved/i);
+  assert.match(homepage, /class="footer-source-link" href="https:\/\/github\.com\/GeniusLv2006\/uol-timetables"/);
+  assert.match(homepage, /AGPL-3\.0/);
+});
+
 test("export dialog locks background scrolling until it closes", () => {
   assert.match(mainScript, /showModal\(\);\s*document\.documentElement\.classList\.add\("has-open-dialog"\)/);
   assert.match(mainScript, /addEventListener\("close",[\s\S]*?classList\.remove\("has-open-dialog"\)/);

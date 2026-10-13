@@ -1,6 +1,7 @@
 {
   "name": "uol-timetable-converter",
   "private": true,
+  "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
