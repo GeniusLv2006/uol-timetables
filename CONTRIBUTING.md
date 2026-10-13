@@ -60,6 +60,7 @@ Please add or update tests for any behaviour you change.
 - **The Python converter must match the website.** `convert_to_ical.py` must produce byte-for-byte the same file as the website’s default export, and `tests/converter.test.js` checks this. Change both together.
 - **Keep event UIDs stable.** Changing how `UID` values are built makes calendar apps treat re-imported events as new ones and show duplicates.
 - **New public files must be added to `scripts/build.mjs`**, or they will not be deployed.
+- **Keep both READMEs in step.** If you change user-facing content in `README.md`, update `README.zh-CN.md` as well, or say in the pull request that the translation still needs updating.
 - **Do not commit personal files.** `timetable.semester*.json` and `timetable.semester*.ics` are ignored for this reason; keep it that way.
 
 ## Commits and pull requests
