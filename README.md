@@ -1,199 +1,123 @@
 # UoL Timetable Converter
 
-UoL Timetable Converter is a private, browser-only interface for extracting a University
-of Liverpool semester timetable, importing or pasting its structured JSON, and
-exporting a timezone-aware iCalendar file. It also includes a dependency-free
-Python converter for command-line use.
+[![CI](https://github.com/GeniusLv2006/uol-timetables/actions/workflows/ci.yml/badge.svg)](https://github.com/GeniusLv2006/uol-timetables/actions/workflows/ci.yml)
+[![License: AGPL-3.0-only](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg)](LICENSE)
 
-## Install and run locally
+Turn your University of Liverpool **My Timetable** into a calendar file you can add to Google Calendar, Apple Calendar, Outlook, or any other calendar app.
 
-```bash
-npm install
-npm run dev
-```
+**Use it here: <https://timetables.xjtlu.uk>**
 
-Wrangler prints the local preview URL. The interface includes an installable bookmarklet
-that copies extracted JSON to the clipboard, one-click clipboard paste, JSON
-drag-and-drop, live validation and preview, and `.ics` download. If clipboard access
-is unavailable, the bookmarklet falls back to downloading a JSON file. Timetable
-data never leaves the browser.
+Everything happens in your own browser. Your timetable is never uploaded, and you do not need to install anything or create an account.
 
-## Personalisation Studio
+> [!IMPORTANT]
+> This is an **unofficial, independent tool**. It is not affiliated with, endorsed by, or operated by the University of Liverpool or Xi’an Jiaotong-Liverpool University (XJTLU). The `xjtlu.uk` domain is privately registered and is not a university website. My Timetable remains the authoritative source: always check important sessions there.
 
-Once valid JSON is loaded, the interface reveals four focused configuration views
-instead of one long settings form:
+## What it does
 
-- **Naming** — title presets and custom token templates, module aliases, calendar
-  name, file name, description, and suggested colour.
-- **Details** — ordered description fields, reminders, location formats, and
-  location aliases.
-- **Schedule** — editable week-one anchor, timezone and semester bounds, included
-  or excluded teaching weeks, reading week, and recurring or individual events.
-- **Delivery** — filters for teaching types and individual activities, plus combined,
-  per-module, or per-activity-type calendar output.
+- **Copies your timetable in one click** with a bookmark you save once.
+- **Creates an `.ics` calendar file** with the right dates, times, rooms, and teaching weeks, including the change between British Summer Time and Greenwich Mean Time.
+- **Lets you personalise the calendar** before you export it: event titles, module nicknames, reminders, which sessions to include, and whether to split it into one calendar per module.
+- **Warns you about problems** such as duplicate or clashing sessions.
 
-The output panel updates immediately, detects duplicate or overlapping sessions,
-and lists every generated calendar when split export is enabled. Export preferences
-can be saved as named profiles in browser-local storage; timetable JSON is not saved.
-Applying a profile carries style choices such as titles, aliases, reminders,
-filters, and splitting, but keeps the loaded semester's Week One, semester bounds,
-included and excluded weeks, reading week, calendar name, and description.
+## How to use it
 
-Editing the JSON keeps your settings: within the same semester everything is kept
-and default semester bounds follow the new teaching weeks, while data for a
-different academic year, semester, or Week One keeps style choices but takes its
-own semester settings. Changing Week One moves the semester bounds with it. If the loaded data has no
-Week One and none is known for its academic year and semester, the data still
-loads and the Schedule settings ask for it.
+It is easiest on a computer, using Chrome, Edge, Firefox, or Safari.
 
-## Project structure
+### 1. Save the extractor (once)
 
-- `timetable.sample.json` — fictional public-safe data used by the sample loader and tests.
-- `timetable.semester*.json` and `timetable.semester*.ics` — optional personal files,
-  deliberately ignored by Git and excluded from deployment.
-- `index.html` — semantic page structure and static form controls.
-- `assets/icon.svg` — scalable site mark and browser favicon.
-- `styles.css` — shared layout, typography, colour, and component styles.
-- `styles/studio.css` — Personalisation Studio tabs, panels, and responsive rules.
-- `js/main.js` — application state and event orchestration.
-- `js/constants.js` — known Week One dates, weekday offsets, and description fields.
-- `js/timetable.js` — JSON parsing, validation, and week arithmetic.
-- `js/preferences.js` and `js/profiles.js` — export preferences and saved profiles.
-- `js/calendar.js` — RFC 5545 generation, recurrence, alarms, and split outputs.
-- `js/timezone.js` — `VTIMEZONE` rules generated from the browser's timezone data.
-- `js/ui.js` and `js/dom.js` — rendering and DOM references.
-- `js/bookmarklet.js` — self-contained clipboard extractor and bookmarklet builder.
-- `js/diagnostics.js` — duplicate and timetable clash detection.
-- `js/privacy.js` — analytics opt-out dialog and preference cookie.
-- `js/contact.js` — contact address revealed only on request.
-- `tests/calendar.test.js` — calendar, preference, and diagnostics regression tests.
-- `tests/converter.test.js` — checks the Python converter matches the web app's default export.
-- `tests/deployment.test.js` and `tests/contact.test.js` — security headers, privacy, and contact checks.
-- `convert_to_ical.py` — command-line converter matching the web app's default settings.
-- `scripts/build.mjs` — creates `dist/` from an explicit public-file allowlist.
-- `_headers` — security and cache headers applied to static assets.
-- `wrangler.jsonc` — Cloudflare Workers Static Assets configuration.
-- `.github/workflows/ci.yml` — runs `npm run check` on pushes to `main` and on pull requests.
+Open <https://timetables.xjtlu.uk> and drag the gold **Copy UoL Timetable** button to your browser’s bookmarks bar.
 
-The browser application remains dependency-free. The build step only copies approved
-public assets; it does not bundle application code or include personal timetable files.
+If your bookmarks bar is hidden, show it first (`Ctrl+Shift+B` on Windows and Linux, `Cmd+Shift+B` on Mac). If dragging does not work, click **Copy Bookmarklet Code**, create a new bookmark by hand, and paste the copied code as its URL or address.
 
-## Run the tests
+### 2. Copy your timetable
 
-```bash
-npm test
-```
+1. Sign in to [My Timetable](https://timetables.liverpool.ac.uk/).
+2. Click **View Semester 1** or **View Semester 2** in the lower-left menu.
+3. Click the **Copy UoL Timetable** bookmark. A message confirms that your timetable was copied.
 
-Run the complete test, build, and Cloudflare dry-run verification with:
+If your browser blocks clipboard access, the timetable is downloaded as a `.json` file instead.
 
-```bash
-npm run check
-```
+### 3. Paste it into the converter
 
-The tests use Node.js 24 (see `.nvmrc`). The Python parity tests run when
-`python3` is available and are skipped otherwise.
+Go back to <https://timetables.xjtlu.uk> and paste into the **Timetable JSON** box (`Ctrl+V` or `Cmd+V`), or drag in the downloaded `.json` file. Check the preview, adjust any settings you like, click **Export Calendar**, and confirm. A `.ics` calendar file is downloaded.
 
-## Deploy with Cloudflare Workers
+### 4. Add the calendar file to your calendar app
 
-The production bundle is served by Workers Static Assets without a Worker script,
-API, server-side runtime, or environment secrets. Production deploys automatically
-through Cloudflare Workers Builds whenever `main` is pushed, so changes should go
-through a pull request. `npm run deploy` deploys from a local checkout and is only
-needed as a manual fallback.
+We recommend importing into a **new, separate calendar** (for example “Semester 1”). If your timetable changes later, you can then delete that calendar and import a fresh file without touching your other events.
 
-Workers Builds is configured with:
+| App | How to import |
+| --- | --- |
+| Google Calendar | On a computer, open **Settings → Import & export → Import**, choose the `.ics` file and the calendar to add it to. |
+| Apple Calendar (Mac) | **File → Import**, then choose the `.ics` file. |
+| iPhone or iPad | iOS cannot import a downloaded `.ics` file from Files. Create a new calendar in the Calendar app, email the file to yourself, open the attachment in Mail, and add its events. |
+| Outlook | In Outlook on the web, choose **Add calendar → Upload from file**. In the desktop app, open the `.ics` file. |
 
-- Production branch: `main`
-- Build command: `npm run build`
-- Deploy command: `npx wrangler deploy`
-- Root directory: repository root
+## Your privacy
 
-Every build starts from an empty `dist/` and copies only `index.html`, the stylesheet
-and JavaScript directories, the icon, the fictional sample, and `_headers`.
+- Your timetable, calendar files, and saved settings stay in your browser. They are never sent to this website or anyone else.
+- The extractor only reads the timetable shown on the page. It never reads your password, cookies, or login.
+- The website uses Cloudflare Web Analytics to count visits. It does not use tracking cookies and never sees your timetable. You can turn it off from the **Privacy** link at the bottom of the page.
 
-The Content Security Policy permits both the unversioned and version-suffixed paths used
-by Cloudflare's automatically injected Web Analytics beacon from
-`static.cloudflareinsights.com`. Its reports use the same-origin `/cdn-cgi/rum`
-endpoint; no broad third-party connection permission is enabled. Do not add
-`no-transform` to `Cache-Control`, because that prevents automatic beacon injection.
+## Common questions
 
-The footer privacy control stores `uol_timetable_analytics=disabled` when a visitor
-opts out. In the Cloudflare dashboard, pair it with a Configuration Rule that sets
-**Disable Real User Monitoring (RUM)** when the request cookie contains that value.
-The rule is required because automatic beacon injection happens at Cloudflare's edge,
-before the site's JavaScript runs.
+**The bookmark says “No timetable table was found on this page”.**
+Make sure you are on the My Timetable page showing a whole semester (step 2 above), not the login page or the menu.
+
+**The dates are a week out, or sessions after Easter look wrong.**
+The converter works out dates from the semester’s first teaching Monday (“Week One”). Semester 1 dates are built in. Semester 2 is not yet, because its teaching weeks are split by the Easter break; open the **Schedule** settings, set Week One yourself, and check sessions after Easter against My Timetable.
+
+**My timetable changed.**
+The exported calendar is a snapshot and does not update by itself. Copy your timetable again, export a new file, delete the old calendar in your calendar app, and import the new file.
+
+**All events are an hour out.**
+Check the timezone in the **Schedule** settings. It should normally be `Europe/London`, and your calendar app will show the times in your own timezone.
+
+**Can I use it on my phone?**
+Saving a bookmarklet on a phone is fiddly, so a computer is recommended. Once you have the `.ics` file, you can import it on any device.
+
+**Something is broken or wrong.**
+Please [open an issue](https://github.com/GeniusLv2006/uol-timetables/issues/new/choose). Do not attach your real timetable, because it contains your personal schedule; describe the problem or use made-up data instead.
+
+## Personalisation options
+
+Once your timetable is loaded, four tabs let you change the calendar before export:
+
+- **Naming**: event title format, module nicknames, calendar name, file name, and suggested colour.
+- **Details**: what appears in event descriptions, reminders, and how locations are written.
+- **Schedule**: Week One, timezone, semester dates, which teaching weeks to include, reading week, and repeating or individual events.
+- **Delivery**: which kinds of sessions to include (lectures, workshops, and so on), and whether to export one calendar or one per module or session type.
+
+You can save these choices as a named **profile** in your browser and reuse them next semester. Profiles keep your style choices; dates always come from the timetable you load.
 
 ## Command-line converter
 
+If you prefer a terminal, `convert_to_ical.py` turns the copied JSON into the same calendar file as the website’s default settings. It needs only Python 3:
+
 ```bash
-python3 convert_to_ical.py timetable.semester1.json timetable.semester1.ics
+python3 convert_to_ical.py timetable.json timetable.ics
 ```
 
-The script needs only the Python standard library and produces the same file as
-the web app's default settings. Unlike the web app, it does not look up known
-Week One dates, so the JSON must include `weekOneMonday`. It supports only
-`Europe/London`; use the web app for other timezones. It applies the same
-input checks as the web app and reports invalid data as a one-line error.
+Unlike the website, the script does not know Week One dates, so the JSON must include `weekOneMonday`, and it only supports the `Europe/London` timezone. See [the JSON format](docs/timetable-json.md) for details.
 
-## Week One dates
+## For developers
 
-Teaching week numbers such as `S1 03` are turned into dates by counting whole
-weeks from the semester's first teaching Monday. Known dates live in
-`KNOWN_WEEK_ONE_DATES` in `js/constants.js`, keyed by `academicYear:semester`,
-and are taken from the University's [term dates](https://www.liverpool.ac.uk/term-dates/).
-The bookmarklet and the web app both read this table, so a new academic year
-needs only one entry there.
+```bash
+npm install
+npm run dev    # local preview
+npm run check  # tests, build, and deployment dry run
+```
 
-| Academic year | Semester | Week One |
-| --- | --- | --- |
-| 2026/27 | 1 | 28 September 2026 |
-| 2027/28 | 1 | 27 September 2027 |
+- [Contributing guide](CONTRIBUTING.md): setup, project structure, and conventions.
+- [Maintenance guide](docs/MAINTAINING.md): yearly date updates, deployment, and Cloudflare settings.
+- [Timetable JSON format](docs/timetable-json.md): the data the extractor produces and the converter accepts.
+- [Security policy](SECURITY.md): how to report a vulnerability.
 
-Semester 2 dates are not listed yet. Its teaching is split by a three-week Easter
-break, and until a real Semester 2 timetable confirms whether `S2` week numbers
-count the break weeks, the converter cannot be sure that counting whole weeks
-gives the right dates. Without a listed date, set Week One in the Schedule settings
-and check the dates of sessions after the Easter break.
-
-## JSON schema
-
-The top-level object contains:
-
-- `schemaVersion` — currently `1`.
-- `academicYear` (for example `2026/27`) and `semester` (`1` or `2`).
-- `weekOneMonday` — the first teaching Monday as `YYYY-MM-DD`. Optional when a
-  known date exists for the academic year and semester.
-- `timezone` — an IANA timezone name; defaults to `Europe/London`.
-- `calendarName`, `source` (the timetable page URL), and `generatedAt` (an ISO
-  timestamp used as the calendar's `DTSTAMP`).
-- `events` — the non-empty list of timetable patterns described below.
-
-Each item in `events` contains:
-
-- `day`, `start`, `end`, `durationMinutes`
-- `moduleCode`, `moduleTitle`, `moduleUrl`
-- `deliveryType`, `activity`, `academic`, `location`
-- `teachingWeeks` (for example `S1 01-S1 08, S1 10-S1 12` or `S1 01, S1 03, S1 05`),
-  with week numbers from 1 to 53
-
-Text fields must be strings: `moduleCode`, `moduleTitle`, `activity`, and
-`teachingWeeks` are required, and `deliveryType`, `academic`, `location`, and
-`moduleUrl` may be `null`. `moduleUrl`, when present, must be an `https://` link
-without spaces or control characters. Line breaks in text are exported as
-escaped newlines, and other control characters are removed.
-
-The source page is server-rendered rather than backed by an exposed JSON payload.
-Times are encoded spatially: the grid begins at 08:00, each logical column is 30
-minutes, and a course cell's `colspan` is its duration. `js/bookmarklet.js`
-turns that layout into the JSON fields above.
+The website is plain HTML, CSS, and JavaScript with no runtime dependencies or server, and is hosted on Cloudflare Workers Static Assets.
 
 ## License
 
 Copyright © 2026 Tingkai Lyu.
 
-This project is licensed under the [GNU Affero General Public License v3.0 only](LICENSE)
-(`AGPL-3.0-only`). If you run a modified version as a network service, the AGPL
-requires you to offer its users the corresponding source code under the same licence.
+This project is licensed under the [GNU Affero General Public License v3.0 only](LICENSE) (`AGPL-3.0-only`). You may use, study, change, and share it. If you distribute a modified version, or run one as a website or other network service, you must make its complete source code available to its users under the same licence.
 
-The licence covers the code, not the project name or the production domain. This
-project is not affiliated with, endorsed by, or operated by the University of Liverpool.
+The licence covers the code, not the project name or the production domain.
