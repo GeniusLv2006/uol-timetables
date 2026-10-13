@@ -1,0 +1,54 @@
+name: Bug report
+description: Something is broken, or the calendar has wrong dates, times, or details.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Please do not paste or attach your real timetable JSON or `.ics` file.** They contain your personal schedule. Describe the problem, or reproduce it with `timetable.sample.json` or made-up data.
+
+        Security problems should be reported privately: see [SECURITY.md](https://github.com/GeniusLv2006/uol-timetables/blob/main/SECURITY.md).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: dropdown
+    id: step
+    attributes:
+      label: Which step?
+      options:
+        - Saving the bookmark
+        - Copying the timetable from My Timetable
+        - Pasting or loading the JSON
+        - Personalisation settings
+        - Exporting the calendar
+        - Importing into a calendar app
+        - Command-line converter
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and device
+      placeholder: e.g. Chrome 140 on Windows 11, Safari on macOS 26
+    validations:
+      required: true
+  - type: input
+    id: calendar-app
+    attributes:
+      label: Calendar app (if relevant)
+      placeholder: e.g. Google Calendar, Apple Calendar on iOS, Outlook
+  - type: input
+    id: semester
+    attributes:
+      label: Academic year and semester
+      placeholder: e.g. 2026/27 Semester 1
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Error messages or screenshots. Hide names, rooms, and module details you do not want to share.
