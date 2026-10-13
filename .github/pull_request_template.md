@@ -15,3 +15,4 @@
 - [ ] `npm run check` passes
 - [ ] Tests added or updated for changed behaviour
 - [ ] No real timetable data is included
+- [ ] I agree to the licence terms in CONTRIBUTING.md

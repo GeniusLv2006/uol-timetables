@@ -72,4 +72,9 @@ Please add or update tests for any behaviour you change.
 
 ## Licence of contributions
 
-By contributing, you agree that your contribution is licensed under the project’s [AGPL-3.0-only](LICENSE) licence.
+By submitting a contribution, you confirm that you wrote it or otherwise have the right to submit it, and you agree that:
+
+1. Your contribution is licensed to everyone under the project’s [AGPL-3.0-only](LICENSE) licence; and
+2. You also grant Tingkai Lyu a perpetual, worldwide, non-exclusive, royalty-free, irrevocable licence to use, modify, and distribute your contribution, and to sublicense or relicense it under other terms, including other open-source licences.
+
+You keep the copyright in your contribution.
