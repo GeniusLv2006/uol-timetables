@@ -186,3 +186,14 @@ The source page is server-rendered rather than backed by an exposed JSON payload
 Times are encoded spatially: the grid begins at 08:00, each logical column is 30
 minutes, and a course cell's `colspan` is its duration. `js/bookmarklet.js`
 turns that layout into the JSON fields above.
+
+## License
+
+Copyright © 2026 Tingkai Lyu.
+
+This project is licensed under the [GNU Affero General Public License v3.0 only](LICENSE)
+(`AGPL-3.0-only`). If you run a modified version as a network service, the AGPL
+requires you to offer its users the corresponding source code under the same licence.
+
+The licence covers the code, not the project name or the production domain. This
+project is not affiliated with, endorsed by, or operated by the University of Liverpool.
