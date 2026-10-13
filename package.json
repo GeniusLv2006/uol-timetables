@@ -1,7 +1,16 @@
 {
   "name": "uol-timetable-converter",
+  "description": "Browser-only converter from University of Liverpool timetables to iCalendar files",
   "private": true,
   "license": "AGPL-3.0-only",
+  "homepage": "https://timetables.xjtlu.uk",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GeniusLv2006/uol-timetables.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GeniusLv2006/uol-timetables/issues"
+  },
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",

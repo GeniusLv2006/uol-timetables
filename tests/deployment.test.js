@@ -42,6 +42,19 @@ test("footer disclaims affiliation with both universities named by the site and 
   assert.match(disclaimer, /Xi’an Jiaotong-Liverpool University \(XJTLU\)/);
 });
 
+test("link previews and home-screen icons point at shipped assets", async () => {
+  for (const property of ["og:title", "og:description", "og:url", "og:image", "og:image:alt"]) {
+    assert.match(homepage, new RegExp(`<meta property="${property}" content="[^"]+"`));
+  }
+  assert.match(homepage, /<meta property="og:image" content="https:\/\/timetables\.xjtlu\.uk\/assets\/og-image\.png"/);
+  assert.match(homepage, /<meta name="twitter:card" content="summary_large_image"/);
+  assert.match(homepage, /<link rel="apple-touch-icon" href="assets\/apple-touch-icon\.png"/);
+  for (const asset of ["og-image.png", "apple-touch-icon.png"]) {
+    const image = await readFile(new URL(`../assets/${asset}`, import.meta.url));
+    assert.deepEqual([...image.subarray(0, 4)], [0x89, 0x50, 0x4e, 0x47], `${asset} is a PNG`);
+  }
+});
+
 test("export dialog locks background scrolling until it closes", () => {
   assert.match(mainScript, /showModal\(\);\s*document\.documentElement\.classList\.add\("has-open-dialog"\)/);
   assert.match(mainScript, /addEventListener\("close",[\s\S]*?classList\.remove\("has-open-dialog"\)/);
