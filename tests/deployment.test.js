@@ -35,6 +35,13 @@ test("footer links to the AGPL source instead of reserving all rights", () => {
   assert.match(homepage, /AGPL-3\.0/);
 });
 
+test("footer disclaims affiliation with both universities named by the site and domain", () => {
+  const disclaimer = homepage.match(/<p class="footer-disclaimer">[\s\S]*?<\/p>/)[0];
+  assert.match(disclaimer, /not affiliated with, endorsed by, or operated by/);
+  assert.match(disclaimer, /University of Liverpool/);
+  assert.match(disclaimer, /Xi’an Jiaotong-Liverpool University \(XJTLU\)/);
+});
+
 test("export dialog locks background scrolling until it closes", () => {
   assert.match(mainScript, /showModal\(\);\s*document\.documentElement\.classList\.add\("has-open-dialog"\)/);
   assert.match(mainScript, /addEventListener\("close",[\s\S]*?classList\.remove\("has-open-dialog"\)/);
