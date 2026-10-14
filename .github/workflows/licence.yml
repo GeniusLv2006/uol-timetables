@@ -1,0 +1,23 @@
+name: Licence
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  agreement:
+    if: github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.user.login != 'GeniusLv2006'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the licence checkbox is ticked
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if printf '%s\n' "$BODY" | grep -Eiq '^[[:space:]]*[-*] \[x\] I agree to the \[licence terms \(version 1\)\]'; then
+            echo "Licence terms accepted."
+          else
+            echo "::error::Tick the licence checkbox in the pull request description (see CONTRIBUTING.md#licence-of-contributions)."
+            exit 1
+          fi

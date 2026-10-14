@@ -15,4 +15,7 @@
 - [ ] `npm run check` passes
 - [ ] Tests added or updated for changed behaviour
 - [ ] No real timetable data is included
-- [ ] I agree to the licence terms in CONTRIBUTING.md
+
+## Licence
+
+- [ ] I agree to the [licence terms (version 1)](https://github.com/GeniusLv2006/uol-timetables/blob/main/CONTRIBUTING.md#licence-of-contributions) for my contribution
