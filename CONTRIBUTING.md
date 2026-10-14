@@ -73,9 +73,13 @@ Please add or update tests for any behaviour you change.
 
 ## Licence of contributions
 
+Version 1 (October 2026)
+
 By submitting a contribution, you confirm that you wrote it or otherwise have the right to submit it, and you agree that:
 
 1. Your contribution is licensed to everyone under the project’s [AGPL-3.0-only](LICENSE) licence; and
-2. You also grant Tingkai Lyu a perpetual, worldwide, non-exclusive, royalty-free, irrevocable licence to use, modify, and distribute your contribution, and to sublicense or relicense it under other terms, including other open-source licences.
+2. You also grant Tingkai Lyu a perpetual, worldwide, non-exclusive, royalty-free, irrevocable licence to use, modify, and distribute your contribution, and to sublicense or relicense it under any licence approved by the [Open Source Initiative](https://opensource.org/licenses) at the time of relicensing. Tingkai Lyu may transfer this licence to a future maintainer of the project.
 
 You keep the copyright in your contribution.
+
+Pull requests confirm this by ticking the licence checkbox in the pull request template; a CI check fails until it is ticked.

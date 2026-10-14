@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright © 2026 Tingkai Lyu
 """Convert a University of Liverpool timetable JSON export to iCalendar."""
 
 from __future__ import annotations
