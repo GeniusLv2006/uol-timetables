@@ -66,22 +66,34 @@ We recommend importing into a **new, separate calendar** (for example “Semeste
 
 ## Common questions
 
-**The bookmark says “No timetable table was found on this page”.**
+### Why does the bookmark say “No timetable table was found on this page”?
+
 Make sure you are on the My Timetable page showing a whole semester (step 2 above), not the login page or the menu.
 
-**The dates are a week out, or sessions after Easter look wrong.**
-The converter works out dates from the semester’s first teaching Monday (“Week One”). Semester 1 dates are built in. Semester 2 is not yet, because its teaching weeks are split by the Easter break; open the **Schedule** settings, set Week One yourself, and check sessions after Easter against My Timetable.
+### Why are the dates a week out, or sessions after Easter wrong?
 
-**My timetable changed.**
-The exported calendar is a snapshot and does not update by itself. Copy your timetable again, export a new file, delete the old calendar in your calendar app, and import the new file.
+The converter works out dates from the semester’s first teaching Monday (“Week One”). Semester 1 dates are built in. Semester 2 dates are not yet, because its teaching weeks are split by the Easter break.
 
-**All events are an hour out.**
+For Semester 2, open the **Schedule** settings, set Week One yourself, and check sessions after Easter against My Timetable.
+
+### How do I update my calendar after my timetable changes?
+
+The exported calendar is a snapshot and does not update by itself. To update it:
+
+1. Copy your timetable again and export a new file.
+2. Delete the old calendar in your calendar app.
+3. Import the new file.
+
+### Why are all events an hour out?
+
 Check the timezone in the **Schedule** settings. It should normally be `Europe/London`, and your calendar app will show the times in your own timezone.
 
-**Can I use it on my phone?**
+### Can I use it on my phone?
+
 Saving a bookmarklet on a phone is fiddly, so a computer is recommended. Once you have the `.ics` file, you can import it on any device.
 
-**Something is broken or wrong.**
+### How do I report a problem?
+
 Please [open an issue](https://github.com/GeniusLv2006/uol-timetables/issues/new/choose). Do not attach your real timetable, because it contains your personal schedule; describe the problem or use made-up data instead.
 
 ## Personalisation options
